@@ -1,0 +1,17 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+
+## Secrets - NUNCA subir
+appsettings.Production.json
+appsettings.*.local.json
+.env
+*.pfx
+*.pem
+
+## Docker
+docker-compose.override.yml

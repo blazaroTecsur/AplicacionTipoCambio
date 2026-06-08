@@ -1,0 +1,50 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tasacambio-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=tasa_cambio_db;User=root;Password=Root1234!;
+      - Seguridad__ApiKey=${API_KEY}
+      - Serilog__SeqUrl=http://seq:5341
+    depends_on:
+      db:
+        condition: service_healthy
+      seq:
+        condition: service_started
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.3
+    container_name: tasacambio-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Root1234!
+      MYSQL_DATABASE: tasa_cambio_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  seq:
+    image: datalust/seq:latest
+    container_name: tasacambio-seq
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - seq_data:/data
+
+volumes:
+  mysql_data:
+  seq_data:
