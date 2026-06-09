@@ -1,10 +1,12 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TasaCambio.Application.Comun.Dtos;
 using TasaCambio.Application.TasaCambios;
 using TasaCambio.Application.TasaCambios.Comandos.ActualizarTasaCambio;
 using TasaCambio.Application.TasaCambios.Comandos.CrearTasaCambio;
 using TasaCambio.Application.TasaCambios.Comandos.EliminarTasaCambio;
+using TasaCambio.Application.TasaCambios.Comandos.SincronizarDesdeSbs;
 using TasaCambio.Application.TasaCambios.Consultas.ListarTasasCambio;
 using TasaCambio.Application.TasaCambios.Consultas.ObtenerTasaCambio;
 using TasaCambio.Application.TasaCambios.Consultas.ObtenerUltimaTasaCambio;
@@ -56,4 +58,9 @@ public sealed class TasaCambioController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Eliminar(long id, CancellationToken ct)
         => Ok(await _mediator.Send(new EliminarTasaCambioCommand(id), ct));
+
+    [HttpPost("sincronizar-sbs")]
+    [ProducesResponseType(typeof(ResponseDto<TasaCambioDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SincronizarDesdeSbs([FromBody] SincronizarDesdeSbsCommand command, CancellationToken ct)
+        => Ok(await _mediator.Send(command, ct));
 }

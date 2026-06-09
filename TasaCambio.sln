@@ -1,4 +1,5 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -12,21 +13,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Presentation", "src\TasaCambio.Presentation\TasaCambio.Presentation.csproj", "{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Worker", "src\TasaCambio.Worker\TasaCambio.Worker.csproj", "{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2E7AF168-3AA0-48AC-A88D-DE095D914639}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.UnitTest", "test\TasaCambio.UnitTest\TasaCambio.UnitTest.csproj", "{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.IntegrationTest", "test\TasaCambio.IntegrationTest\TasaCambio.IntegrationTest.csproj", "{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
-	ProjectSection(SolutionItems) = preProject
-		.env = .env
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -45,6 +46,10 @@ Global
 		{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -54,14 +59,12 @@ Global
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
-	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
 		{CD86EF41-4BF8-460D-8789-62E84D9E350D} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
 		{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
 		{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
+		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3} = {2E7AF168-3AA0-48AC-A88D-DE095D914639}
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A} = {2E7AF168-3AA0-48AC-A88D-DE095D914639}
 	EndGlobalSection
