@@ -11,7 +11,7 @@ using TasaCambio.Application.TasaCambios.Consultas.ObtenerUltimaTasaCambio;
 namespace TasaCambio.Presentation.Controladores.v1;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/tipocambio")]
 [Produces("application/json")]
 public sealed class TipoCambioController : ControllerBase
 {
