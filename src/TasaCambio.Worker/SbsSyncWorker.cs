@@ -22,30 +22,32 @@ public class SbsSyncWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        _logger.LogInformation("Worker SBS iniciado.");
+        _logger.LogInformation(
+            "Worker SBS iniciado. Ventana de actualización: {Inicio}:00 - {Fin}:00. Intervalo: {Intervalo} min.",
+            _config.HoraInicioRegistro, _config.HoraFinRegistro, _config.IntervaloBusquedaMinutos);
 
         while (!ct.IsCancellationRequested)
         {
-            var ahora = DateTime.Now;
-            var horaEjecucion = TimeOnly.Parse(_config.HoraEjecucion);
-            var proximaEjecucion = ahora.Date.Add(horaEjecucion.ToTimeSpan());
+            if (_config.EstaEnVentanaActualizacion())
+            {
+                _logger.LogInformation("En ventana de ACTUALIZACIÓN. Sincronizando con SBS...");
+                await EjecutarActualizacionAsync(ct);
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Fuera de ventana de actualización (hora actual: {Hora}:00). Solo validación, no se graba en BD.",
+                    DateTime.Now.Hour);
+                await EjecutarValidacionAsync(ct);
+            }
 
-            if (proximaEjecucion <= ahora)
-                proximaEjecucion = proximaEjecucion.AddDays(1);
-
-            var espera = proximaEjecucion - ahora;
-            _logger.LogInformation("Próxima ejecución: {ProximaEjecucion}", proximaEjecucion);
-
-            await Task.Delay(espera, ct);
-
-            await EjecutarSincronizacionAsync(ct);
+            await Task.Delay(TimeSpan.FromMinutes(_config.IntervaloBusquedaMinutos), ct);
         }
     }
 
-    private async Task EjecutarSincronizacionAsync(CancellationToken ct)
+    private async Task EjecutarActualizacionAsync(CancellationToken ct)
     {
         var fecha = DateOnly.FromDateTime(DateTime.Today);
-        _logger.LogInformation("Iniciando sincronización SBS para fecha {Fecha}", fecha);
 
         foreach (var trabajo in _config.Trabajos)
         {
@@ -58,19 +60,49 @@ public class SbsSyncWorker : BackgroundService
                 var resultado = await mediator.Send(comando, ct);
 
                 if (resultado.Success)
-                    _logger.LogInformation("Sincronizado: {Empresa}/{Moneda} = Compra:{Compra} Venta:{Venta}",
+                    _logger.LogInformation(
+                        "[ACTUALIZACIÓN] {Empresa}/{Moneda} - Compra: {Compra} / Venta: {Venta}",
                         trabajo.Empresa, trabajo.CodigoMoneda,
                         resultado.Data?.ValorCompra, resultado.Data?.ValorVenta);
                 else
-                    _logger.LogWarning("Sin datos: {Empresa}/{Moneda} - {Errores}",
+                    _logger.LogWarning(
+                        "[ACTUALIZACIÓN] {Empresa}/{Moneda} - {Errores}",
                         trabajo.Empresa, trabajo.CodigoMoneda, string.Join(", ", resultado.Errors));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sincronizando {Empresa}/{Moneda}", trabajo.Empresa, trabajo.CodigoMoneda);
+                _logger.LogError(ex, "[ACTUALIZACIÓN] Error en {Empresa}/{Moneda}", trabajo.Empresa, trabajo.CodigoMoneda);
             }
         }
+    }
 
-        _logger.LogInformation("Sincronización SBS completada.");
+    private async Task EjecutarValidacionAsync(CancellationToken ct)
+    {
+        var fecha = DateOnly.FromDateTime(DateTime.Today);
+
+        foreach (var trabajo in _config.Trabajos)
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+                var servicioSbs = scope.ServiceProvider.GetRequiredService<Application.Comun.Interfaces.IServicioSbs>();
+
+                var resultado = await servicioSbs.ObtenerTasaCambioAsync(trabajo.CodigoMoneda, fecha, ct);
+
+                if (resultado is not null)
+                    _logger.LogInformation(
+                        "[VALIDACIÓN] {Empresa}/{Moneda} - Compra: {Compra} / Venta: {Venta} (no se guarda en BD)",
+                        trabajo.Empresa, trabajo.CodigoMoneda,
+                        resultado.ValorCompra, resultado.ValorVenta);
+                else
+                    _logger.LogWarning(
+                        "[VALIDACIÓN] {Empresa}/{Moneda} - Sin datos en SBS para {Fecha}",
+                        trabajo.Empresa, trabajo.CodigoMoneda, fecha);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[VALIDACIÓN] Error en {Empresa}/{Moneda}", trabajo.Empresa, trabajo.CodigoMoneda);
+            }
+        }
     }
 }

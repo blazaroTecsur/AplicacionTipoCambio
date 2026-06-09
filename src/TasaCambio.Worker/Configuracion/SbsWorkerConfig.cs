@@ -2,10 +2,18 @@ namespace TasaCambio.Worker.Configuracion;
 
 public sealed class SbsWorkerConfig
 {
-    public string HoraEjecucion { get; init; } = "09:00";
+    public int HoraInicioRegistro { get; init; } = 21;
+    public int HoraFinRegistro { get; init; } = 6;
+    public int IntervaloBusquedaMinutos { get; init; } = 30;
     public int ValidacionPartesEnteras { get; init; } = 2;
     public int ValidacionPartesDecimales { get; init; } = 6;
     public List<TrabajoSbs> Trabajos { get; init; } = [];
+
+    public bool EstaEnVentanaActualizacion()
+    {
+        var horaActual = DateTime.Now.Hour;
+        return horaActual >= HoraInicioRegistro || horaActual <= HoraFinRegistro;
+    }
 }
 
 public sealed class TrabajoSbs
