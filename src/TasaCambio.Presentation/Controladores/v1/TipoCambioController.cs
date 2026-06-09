@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TasaCambio.Application.Comun.Dtos;
 using TasaCambio.Application.TasaCambios;
-using TasaCambio.Application.TasaCambios.Comandos.SincronizarDesdeSbs;
 using TasaCambio.Application.TasaCambios.Consultas.ListarTasasCambio;
 using TasaCambio.Application.TasaCambios.Consultas.ObtenerTasaCambio;
 using TasaCambio.Application.TasaCambios.Consultas.ObtenerUltimaTasaCambio;
@@ -35,9 +34,4 @@ public sealed class TipoCambioController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ObtenerUltima(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct)
         => Ok(await _mediator.Send(new ObtenerUltimaTasaCambioQuery(empresa, codigoMoneda, fecha), ct));
-
-    [HttpPost("sincronizar-sbs")]
-    [ProducesResponseType(typeof(ResponseDto<TasaCambioDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> SincronizarDesdeSbs([FromBody] SincronizarDesdeSbsCommand command, CancellationToken ct)
-        => Ok(await _mediator.Send(command, ct));
 }
