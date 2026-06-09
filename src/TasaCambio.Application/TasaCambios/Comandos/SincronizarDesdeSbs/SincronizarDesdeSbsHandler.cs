@@ -28,6 +28,11 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
 
     public async Task<ResponseDto<TasaCambioDto>> Handle(SincronizarDesdeSbsCommand request, CancellationToken ct)
     {
+        var tasaExistente = await _uow.TasaCambios.ObtenerPorFechaAsync(request.Empresa, request.CodigoMoneda, request.Fecha, ct);
+
+        if (tasaExistente is not null)
+            return ResponseDto<TasaCambioDto>.Fail("Ya existe una tasa de cambio para esta fecha.");
+
         var sbsDto = await _servicioSbs.ObtenerTasaCambioAsync(request.CodigoMoneda, request.Fecha, ct);
 
         if (sbsDto is null)
