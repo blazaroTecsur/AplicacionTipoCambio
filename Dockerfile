@@ -10,6 +10,7 @@ COPY ["src/TasaCambio.Presentation/TasaCambio.Presentation.csproj", "src/TasaCam
 COPY ["src/TasaCambio.Application/TasaCambio.Application.csproj", "src/TasaCambio.Application/"]
 COPY ["src/TasaCambio.Domain/TasaCambio.Domain.csproj", "src/TasaCambio.Domain/"]
 COPY ["src/TasaCambio.Infrastructure/TasaCambio.Infrastructure.csproj", "src/TasaCambio.Infrastructure/"]
+COPY ["src/TasaCambio.Worker/TasaCambio.Worker.csproj", "src/TasaCambio.Worker/"]
 
 RUN dotnet restore "src/TasaCambio.Presentation/TasaCambio.Presentation.csproj"
 
