@@ -18,8 +18,8 @@ services:
     expose:
       - "8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=tasa_cambio_db;User=root;Password=Root1234!;
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=10.160.9.18,1433;Database=erp_tecsur_pinterna;User Id=tecsur_root;Password=Tecsur2021$;SslMode=None;
       - Seguridad__ApiKey=${API_KEY}
       - Serilog__SeqUrl=http://seq:5341
     depends_on:
