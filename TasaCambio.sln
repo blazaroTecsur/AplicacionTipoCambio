@@ -1,23 +1,23 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{51D1621C-3D5B-452A-9BF5-CC401372329B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Dominio", "src\TasaCambio.Dominio\TasaCambio.Dominio.csproj", "{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Domain", "src\TasaCambio.Domain\TasaCambio.Domain.csproj", "{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Aplicacion", "src\TasaCambio.Aplicacion\TasaCambio.Aplicacion.csproj", "{CD86EF41-4BF8-460D-8789-62E84D9E350D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Application", "src\TasaCambio.Application\TasaCambio.Application.csproj", "{CD86EF41-4BF8-460D-8789-62E84D9E350D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Infraestructura", "src\TasaCambio.Infraestructura\TasaCambio.Infraestructura.csproj", "{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Infrastructure", "src\TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj", "{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Presentacion", "src\TasaCambio.Presentacion\TasaCambio.Presentacion.csproj", "{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Presentation", "src\TasaCambio.Presentation\TasaCambio.Presentation.csproj", "{FE52C3BF-B8E7-4EF5-B8BF-14CE5C8E7771}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2E7AF168-3AA0-48AC-A88D-DE095D914639}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.PruebaUnitaria", "test\TasaCambio.PruebaUnitaria\TasaCambio.PruebaUnitaria.csproj", "{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.UnitTest", "test\TasaCambio.UnitTest\TasaCambio.UnitTest.csproj", "{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.PruebaIntegral", "test\TasaCambio.PruebaIntegral\TasaCambio.PruebaIntegral.csproj", "{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.IntegrationTest", "test\TasaCambio.IntegrationTest\TasaCambio.IntegrationTest.csproj", "{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
