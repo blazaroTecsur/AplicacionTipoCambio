@@ -6,6 +6,7 @@ using TasaCambio.Application.Comun.Interfaces;
 using TasaCambio.Domain.Interfaces;
 using TasaCambio.Infrastructure.Auditoria;
 using TasaCambio.Infrastructure.Persistencia;
+using TasaCambio.Infrastructure.Servicios;
 
 namespace TasaCambio.Infrastructure;
 
@@ -27,6 +28,8 @@ public static class DependencyInjection
                 p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
             .AddTransientHttpErrorPolicy(p =>
                 p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+
+        services.AddScoped<IServicioSbs, ServicioSbs>();
 
         return services;
     }
