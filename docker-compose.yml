@@ -1,11 +1,22 @@
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: tasacambio-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+
   api:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: tasacambio-api
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=tasa_cambio_db;User=root;Password=Root1234!;
