@@ -15,6 +15,11 @@ internal static class SwaggerExtension
                 Description = "Microservicio de gestión de tasas de cambio"
             });
 
+            var xmlPresentation = Path.Combine(AppContext.BaseDirectory, "TasaCambio.Presentation.xml");
+            var xmlApplication  = Path.Combine(AppContext.BaseDirectory, "TasaCambio.Application.xml");
+            if (File.Exists(xmlPresentation)) c.IncludeXmlComments(xmlPresentation);
+            if (File.Exists(xmlApplication))  c.IncludeXmlComments(xmlApplication);
+
             c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
             {
                 Name = "X-Api-Key",
