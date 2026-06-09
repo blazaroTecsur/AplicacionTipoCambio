@@ -15,7 +15,7 @@ internal sealed class ObtenerUltimaTasaCambioHandler : IRequestHandler<ObtenerUl
     public async Task<ResponseDto<TasaCambioDto>> Handle(ObtenerUltimaTasaCambioQuery request, CancellationToken ct)
     {
         var tasa = await _uow.TasaCambios.ObtenerUltimaHastaFechaAsync(request.Empresa, request.CodigoMoneda, request.HastaFecha, ct)
-            ?? throw new NotFoundException(nameof(Dominio.Entidades.TasaCambio), $"{request.Empresa}/{request.CodigoMoneda}/hasta-{request.HastaFecha}");
+            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), $"{request.Empresa}/{request.CodigoMoneda}/hasta-{request.HastaFecha}");
 
         return ResponseDto<TasaCambioDto>.Ok(tasa.Adapt<TasaCambioDto>());
     }

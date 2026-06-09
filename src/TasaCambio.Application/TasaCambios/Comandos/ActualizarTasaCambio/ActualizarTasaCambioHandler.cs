@@ -23,12 +23,12 @@ internal sealed class ActualizarTasaCambioHandler : IRequestHandler<ActualizarTa
     public async Task<ResponseDto<TasaCambioDto>> Handle(ActualizarTasaCambioCommand request, CancellationToken ct)
     {
         var tasa = await _uow.TasaCambios.ObtenerPorIdAsync(request.Id, ct)
-            ?? throw new NotFoundException(nameof(Dominio.Entidades.TasaCambio), request.Id);
+            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), request.Id);
 
         tasa.ActualizarValores(request.ValorCompra, request.ValorVenta, _contextoUsuario.NombreUsuario);
         await _uow.TasaCambios.ActualizarAsync(tasa, ct);
         await _uow.GuardarCambiosAsync(ct);
-        await _auditoria.RegistrarAsync("ACTUALIZAR", nameof(Dominio.Entidades.TasaCambio), new { request.Id }, ct);
+        await _auditoria.RegistrarAsync("ACTUALIZAR", nameof(Domain.Entidades.TasaCambio), new { request.Id }, ct);
 
         return ResponseDto<TasaCambioDto>.Ok(tasa.Adapt<TasaCambioDto>(), "Tasa de cambio actualizada correctamente.");
     }

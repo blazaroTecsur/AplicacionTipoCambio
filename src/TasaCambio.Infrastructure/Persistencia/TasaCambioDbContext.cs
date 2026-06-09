@@ -8,7 +8,7 @@ public sealed class TasaCambioDbContext : DbContext
 {
     public TasaCambioDbContext(DbContextOptions<TasaCambioDbContext> options) : base(options) { }
 
-    public DbSet<Dominio.Entidades.TasaCambio> TasaCambios => Set<Dominio.Entidades.TasaCambio>();
+    public DbSet<Domain.Entidades.TasaCambio> TasaCambios => Set<Domain.Entidades.TasaCambio>();
     public DbSet<Moneda> Monedas => Set<Moneda>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

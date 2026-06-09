@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace TasaCambio.Infrastructure.Persistencia.Configuraciones;
 
-internal sealed class TasaCambioConfiguracion : IEntityTypeConfiguration<Dominio.Entidades.TasaCambio>
+internal sealed class TasaCambioConfiguracion : IEntityTypeConfiguration<Domain.Entidades.TasaCambio>
 {
-    public void Configure(EntityTypeBuilder<Dominio.Entidades.TasaCambio> builder)
+    public void Configure(EntityTypeBuilder<Domain.Entidades.TasaCambio> builder)
     {
         builder.ToTable("ttc_tasa_cambio");
 

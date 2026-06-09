@@ -3,23 +3,23 @@ using TasaCambio.Domain.Interfaces;
 
 namespace TasaCambio.Infrastructure.Persistencia.Repositorios;
 
-internal sealed class TasaCambioRepositorio : RepositorioBase<Dominio.Entidades.TasaCambio>, ITasaCambioRepositorio
+internal sealed class TasaCambioRepositorio : RepositorioBase<Domain.Entidades.TasaCambio>, ITasaCambioRepositorio
 {
     public TasaCambioRepositorio(TasaCambioDbContext contexto) : base(contexto) { }
 
-    public async Task<Dominio.Entidades.TasaCambio?> ObtenerPorFechaAsync(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct = default)
+    public async Task<Domain.Entidades.TasaCambio?> ObtenerPorFechaAsync(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct = default)
         => await _contexto.TasaCambios
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Empresa == empresa.ToUpper() && t.CodigoMoneda == codigoMoneda.ToUpper() && t.Fecha == fecha, ct);
 
-    public async Task<Dominio.Entidades.TasaCambio?> ObtenerUltimaHastaFechaAsync(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct = default)
+    public async Task<Domain.Entidades.TasaCambio?> ObtenerUltimaHastaFechaAsync(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct = default)
         => await _contexto.TasaCambios
             .AsNoTracking()
             .Where(t => t.Empresa == empresa.ToUpper() && t.CodigoMoneda == codigoMoneda.ToUpper() && t.Fecha <= fecha)
             .OrderByDescending(t => t.Fecha)
             .FirstOrDefaultAsync(ct);
 
-    public async Task<IReadOnlyList<Dominio.Entidades.TasaCambio>> ListarPorEmpresaYMonedaAsync(string empresa, string codigoMoneda, int? anio, int? mes, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Domain.Entidades.TasaCambio>> ListarPorEmpresaYMonedaAsync(string empresa, string codigoMoneda, int? anio, int? mes, CancellationToken ct = default)
     {
         var query = _contexto.TasaCambios
             .AsNoTracking()

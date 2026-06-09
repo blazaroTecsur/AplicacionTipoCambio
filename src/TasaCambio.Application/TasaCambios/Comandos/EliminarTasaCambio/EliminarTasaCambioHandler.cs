@@ -22,11 +22,11 @@ internal sealed class EliminarTasaCambioHandler : IRequestHandler<EliminarTasaCa
     public async Task<ResponseDto<bool>> Handle(EliminarTasaCambioCommand request, CancellationToken ct)
     {
         var tasa = await _uow.TasaCambios.ObtenerPorIdAsync(request.Id, ct)
-            ?? throw new NotFoundException(nameof(Dominio.Entidades.TasaCambio), request.Id);
+            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), request.Id);
 
         await _uow.TasaCambios.EliminarAsync(tasa, ct);
         await _uow.GuardarCambiosAsync(ct);
-        await _auditoria.RegistrarAsync("ELIMINAR", nameof(Dominio.Entidades.TasaCambio), new { request.Id, _contextoUsuario.NombreUsuario }, ct);
+        await _auditoria.RegistrarAsync("ELIMINAR", nameof(Domain.Entidades.TasaCambio), new { request.Id, _contextoUsuario.NombreUsuario }, ct);
 
         return ResponseDto<bool>.Ok(true, "Tasa de cambio eliminada correctamente.");
     }

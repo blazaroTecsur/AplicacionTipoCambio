@@ -21,7 +21,7 @@ internal sealed class CrearTasaCambioHandler : IRequestHandler<CrearTasaCambioCo
 
     public async Task<ResponseDto<TasaCambioDto>> Handle(CrearTasaCambioCommand request, CancellationToken ct)
     {
-        var tasa = Dominio.Entidades.TasaCambio.Crear(
+        var tasa = Domain.Entidades.TasaCambio.Crear(
             request.Empresa,
             request.CodigoMoneda,
             request.Fecha,
@@ -32,7 +32,7 @@ internal sealed class CrearTasaCambioHandler : IRequestHandler<CrearTasaCambioCo
 
         await _uow.TasaCambios.AgregarAsync(tasa, ct);
         await _uow.GuardarCambiosAsync(ct);
-        await _auditoria.RegistrarAsync("CREAR", nameof(Dominio.Entidades.TasaCambio), new { tasa.Empresa, tasa.CodigoMoneda, tasa.Fecha }, ct);
+        await _auditoria.RegistrarAsync("CREAR", nameof(Domain.Entidades.TasaCambio), new { tasa.Empresa, tasa.CodigoMoneda, tasa.Fecha }, ct);
 
         return ResponseDto<TasaCambioDto>.Ok(tasa.Adapt<TasaCambioDto>(), "Tasa de cambio creada correctamente.");
     }
