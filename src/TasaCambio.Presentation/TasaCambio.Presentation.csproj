@@ -3,7 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\TasaCambio.Application\TasaCambio.Application.csproj" />
     <ProjectReference Include="..\TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj" />
-    <ProjectReference Include="..\TasaCambio.Worker\TasaCambio.Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

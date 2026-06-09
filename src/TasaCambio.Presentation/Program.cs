@@ -5,8 +5,6 @@ using TasaCambio.Application.Comun.Interfaces;
 using TasaCambio.Infrastructure;
 using TasaCambio.Presentation.Extensiones;
 using TasaCambio.Presentation.Middleware;
-using TasaCambio.Worker;
-using TasaCambio.Worker.Configuracion;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -33,10 +31,6 @@ try
 
     builder.Services.AgregarAplicacion();
     builder.Services.AgregarInfraestructura(builder.Configuration);
-
-    var sbsConfig = builder.Configuration.GetSection("Sbs").Get<SbsWorkerConfig>() ?? new SbsWorkerConfig();
-    builder.Services.AddSingleton(sbsConfig);
-    builder.Services.AddHostedService<SbsSyncWorker>();
 
     builder.Services.AddRateLimiter(options =>
     {
