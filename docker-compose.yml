@@ -39,6 +39,9 @@ services:
       - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=tasa_cambio_db;User=root;Password=Root1234!;
       - Sbs__Url=https://api.sbs.gob.pe/tipo-cambio/v1/
       - Sbs__Token=${SBS_TOKEN}
+      - Sbs__HoraInicioRegistro=21
+      - Sbs__HoraFinRegistro=6
+      - Sbs__IntervaloBusquedaMinutos=30
       - Serilog__SeqUrl=http://seq:5341
     depends_on:
       db:
