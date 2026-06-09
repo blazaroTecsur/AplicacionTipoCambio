@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FluentValidation;
+using TasaCambio.Application.Comun.Dtos;
 using TasaCambio.Domain.Excepciones;
 
 namespace TasaCambio.Presentation.Middleware;
@@ -38,7 +39,7 @@ internal sealed class ManejadorExcepciones : IMiddleware
 
         context.Response.StatusCode = statusCode;
 
-        var respuesta = new { exitoso = false, errores };
+        var respuesta = ResponseDto<object>.Fail(errores);
         await context.Response.WriteAsync(JsonSerializer.Serialize(respuesta));
     }
 }
