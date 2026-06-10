@@ -18,20 +18,20 @@ public sealed class TipoCambioController : ControllerBase
 
     public TipoCambioController(IMediator mediator) => _mediator = mediator;
 
-    [HttpGet("{empresa}/{codigoMoneda}")]
+    [HttpGet("{codigoMoneda}")]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<TasaCambioDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Listar(string empresa, string codigoMoneda, [FromQuery] int? anio, [FromQuery] int? mes, CancellationToken ct)
-        => Ok(await _mediator.Send(new ListarTasasCambioQuery(empresa, codigoMoneda, anio, mes), ct));
+    public async Task<IActionResult> Listar(string codigoMoneda, [FromQuery] int? anio, [FromQuery] int? mes, CancellationToken ct)
+        => Ok(await _mediator.Send(new ListarTasasCambioQuery(codigoMoneda, anio, mes), ct));
 
-    [HttpGet("{empresa}/{codigoMoneda}/{fecha}")]
+    [HttpGet("{codigoMoneda}/{fecha}")]
     [ProducesResponseType(typeof(ResponseDto<TasaCambioDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ObtenerPorFecha(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct)
-        => Ok(await _mediator.Send(new ObtenerTasaCambioQuery(empresa, codigoMoneda, fecha), ct));
+    public async Task<IActionResult> ObtenerPorFecha(string codigoMoneda, DateOnly fecha, CancellationToken ct)
+        => Ok(await _mediator.Send(new ObtenerTasaCambioQuery(codigoMoneda, fecha), ct));
 
-    [HttpGet("{empresa}/{codigoMoneda}/{fecha}/ultima")]
+    [HttpGet("{codigoMoneda}/{fecha}/ultima")]
     [ProducesResponseType(typeof(ResponseDto<TasaCambioDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ObtenerUltima(string empresa, string codigoMoneda, DateOnly fecha, CancellationToken ct)
-        => Ok(await _mediator.Send(new ObtenerUltimaTasaCambioQuery(empresa, codigoMoneda, fecha), ct));
+    public async Task<IActionResult> ObtenerUltima(string codigoMoneda, DateOnly fecha, CancellationToken ct)
+        => Ok(await _mediator.Send(new ObtenerUltimaTasaCambioQuery(codigoMoneda, fecha), ct));
 }

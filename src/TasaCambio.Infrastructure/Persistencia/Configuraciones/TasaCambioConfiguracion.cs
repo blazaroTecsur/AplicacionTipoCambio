@@ -12,7 +12,6 @@ internal sealed class TasaCambioConfiguracion : IEntityTypeConfiguration<Domain.
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasColumnName("ttc_id").ValueGeneratedOnAdd();
 
-        builder.Property(x => x.Empresa).HasColumnName("ttc_empresa").HasMaxLength(20).IsRequired();
         builder.Property(x => x.CodigoMoneda).HasColumnName("ttc_codigo_moneda").HasMaxLength(10).IsRequired();
         builder.Property(x => x.Fecha).HasColumnName("ttc_fecha").IsRequired();
         builder.Property(x => x.ValorCompra).HasColumnName("ttc_valor_compra").HasPrecision(18, 6).IsRequired();
@@ -25,9 +24,9 @@ internal sealed class TasaCambioConfiguracion : IEntityTypeConfiguration<Domain.
         builder.Property(x => x.UsuarioAct).HasColumnName("ttc_usuario_act").HasMaxLength(50);
         builder.Property(x => x.FechaAct).HasColumnName("ttc_fecha_act");
 
-        builder.HasIndex(x => new { x.Empresa, x.CodigoMoneda, x.Fecha })
+        builder.HasIndex(x => new { x.CodigoMoneda, x.Fecha })
             .IsUnique()
-            .HasDatabaseName("idx_ttc_empresa_moneda_fecha");
+            .HasDatabaseName("idx_ttc_moneda_fecha");
 
         builder.Ignore(x => x.TasaPromedio);
     }

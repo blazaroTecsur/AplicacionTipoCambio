@@ -7,10 +7,6 @@ public sealed record MonedaDto
     /// <example>1</example>
     public long Id { get; init; }
 
-    /// <summary>Código de la empresa.</summary>
-    /// <example>BCP</example>
-    public string Empresa { get; init; } = string.Empty;
-
     /// <summary>Código de la moneda.</summary>
     /// <example>USD</example>
     public string Codigo { get; init; } = string.Empty;

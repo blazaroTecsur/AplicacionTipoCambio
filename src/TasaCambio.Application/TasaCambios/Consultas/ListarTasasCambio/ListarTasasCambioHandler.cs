@@ -14,10 +14,10 @@ internal sealed class ListarTasasCambioHandler : IRequestHandler<ListarTasasCamb
 
     public async Task<ResponseDto<IReadOnlyList<TasaCambioDto>>> Handle(ListarTasasCambioQuery request, CancellationToken ct)
     {
-        var tasas = await _uow.TasaCambios.ListarPorEmpresaYMonedaAsync(
-            request.Empresa, request.CodigoMoneda, request.Anio, request.Mes, ct);
+        var tasas = await _uow.TasaCambios.ListarPorMonedaAsync(
+            request.CodigoMoneda, request.Anio, request.Mes, ct);
 
-        var detalleMoneda = (await _uow.Monedas.ObtenerPorCodigoAsync(request.Empresa, request.CodigoMoneda, ct))
+        var detalleMoneda = (await _uow.Monedas.ObtenerPorCodigoAsync(request.CodigoMoneda, ct))
             ?.Adapt<MonedaDto>();
 
         var dtos = tasas.Adapt<List<TasaCambioDto>>()

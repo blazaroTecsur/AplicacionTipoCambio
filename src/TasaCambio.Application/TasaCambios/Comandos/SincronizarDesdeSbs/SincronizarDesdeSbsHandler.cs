@@ -36,7 +36,7 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
         var valorCompra = decimal.Parse(sbsDto.ValorCompra, System.Globalization.CultureInfo.InvariantCulture);
         var valorVenta = decimal.Parse(sbsDto.ValorVenta, System.Globalization.CultureInfo.InvariantCulture);
 
-        var tasaExistente = await _uow.TasaCambios.ObtenerPorFechaAsync(request.Empresa, request.CodigoMoneda, request.Fecha, ct);
+        var tasaExistente = await _uow.TasaCambios.ObtenerPorFechaAsync(request.CodigoMoneda, request.Fecha, ct);
 
         if (tasaExistente is not null)
         {
@@ -46,13 +46,12 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
             tasaExistente.ActualizarValores(valorCompra, valorVenta, _contextoUsuario.NombreUsuario, "SBS");
             await _uow.TasaCambios.ActualizarAsync(tasaExistente, ct);
             await _uow.GuardarCambiosAsync(ct);
-            await _auditoria.RegistrarAsync("ACTUALIZAR_SBS", nameof(Domain.Entidades.TasaCambio), new { tasaExistente.Empresa, tasaExistente.CodigoMoneda, tasaExistente.Fecha }, ct);
+            await _auditoria.RegistrarAsync("ACTUALIZAR_SBS", nameof(Domain.Entidades.TasaCambio), new { tasaExistente.CodigoMoneda, tasaExistente.Fecha }, ct);
 
             return ResponseDto<TasaCambioDto>.Ok(tasaExistente.Adapt<TasaCambioDto>(), "Tasa de cambio actualizada desde SBS correctamente.");
         }
 
         var tasa = Domain.Entidades.TasaCambio.Crear(
-            request.Empresa,
             request.CodigoMoneda,
             request.Fecha,
             valorCompra,
@@ -62,7 +61,7 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
 
         await _uow.TasaCambios.AgregarAsync(tasa, ct);
         await _uow.GuardarCambiosAsync(ct);
-        await _auditoria.RegistrarAsync("SINCRONIZAR_SBS", nameof(Domain.Entidades.TasaCambio), new { tasa.Empresa, tasa.CodigoMoneda, tasa.Fecha }, ct);
+        await _auditoria.RegistrarAsync("SINCRONIZAR_SBS", nameof(Domain.Entidades.TasaCambio), new { tasa.CodigoMoneda, tasa.Fecha }, ct);
 
         return ResponseDto<TasaCambioDto>.Ok(tasa.Adapt<TasaCambioDto>(), "Tasa de cambio sincronizada desde SBS correctamente.");
     }

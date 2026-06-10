@@ -3,4 +3,4 @@ using TasaCambio.Application.Comun.Dtos;
 
 namespace TasaCambio.Application.Monedas.Consultas.ListarMonedas;
 
-public sealed record ListarMonedasQuery(string Empresa) : IRequest<ResponseDto<IReadOnlyList<MonedaDto>>>;
+public sealed record ListarMonedasQuery : IRequest<ResponseDto<IReadOnlyList<MonedaDto>>>;

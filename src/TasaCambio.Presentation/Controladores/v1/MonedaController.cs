@@ -15,8 +15,8 @@ public sealed class MonedaController : ControllerBase
 
     public MonedaController(IMediator mediator) => _mediator = mediator;
 
-    [HttpGet("{empresa}")]
+    [HttpGet]
     [ProducesResponseType(typeof(ResponseDto<IReadOnlyList<MonedaDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Listar(string empresa, CancellationToken ct)
-        => Ok(await _mediator.Send(new ListarMonedasQuery(empresa), ct));
+    public async Task<IActionResult> Listar(CancellationToken ct)
+        => Ok(await _mediator.Send(new ListarMonedasQuery(), ct));
 }

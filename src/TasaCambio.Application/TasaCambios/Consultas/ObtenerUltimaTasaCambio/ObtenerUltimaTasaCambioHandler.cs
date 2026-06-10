@@ -16,14 +16,13 @@ internal sealed class ObtenerUltimaTasaCambioHandler : IRequestHandler<ObtenerUl
 
     public async Task<ResponseDto<TasaCambioDto>> Handle(ObtenerUltimaTasaCambioQuery request, CancellationToken ct)
     {
-        var detalleMoneda = (await _uow.Monedas.ObtenerPorCodigoAsync(request.Empresa, request.CodigoMoneda, ct))
+        var detalleMoneda = (await _uow.Monedas.ObtenerPorCodigoAsync(request.CodigoMoneda, ct))
             ?.Adapt<MonedaDto>();
 
         if (request.CodigoMoneda.Trim().Equals(Constantes.CodigoMonedaNacional, StringComparison.OrdinalIgnoreCase))
         {
             return ResponseDto<TasaCambioDto>.Ok(new TasaCambioDto
             {
-                Empresa = request.Empresa.Trim().ToUpper(),
                 CodigoMoneda = Constantes.CodigoMonedaNacional,
                 Fecha = request.HastaFecha,
                 ValorCompra = 1m,
@@ -34,8 +33,8 @@ internal sealed class ObtenerUltimaTasaCambioHandler : IRequestHandler<ObtenerUl
             });
         }
 
-        var tasa = await _uow.TasaCambios.ObtenerUltimaHastaFechaAsync(request.Empresa, request.CodigoMoneda, request.HastaFecha, ct)
-            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), $"{request.Empresa}/{request.CodigoMoneda}/hasta-{request.HastaFecha}");
+        var tasa = await _uow.TasaCambios.ObtenerUltimaHastaFechaAsync(request.CodigoMoneda, request.HastaFecha, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), $"{request.CodigoMoneda}/hasta-{request.HastaFecha}");
 
         var dto = tasa.Adapt<TasaCambioDto>() with { DetalleMoneda = detalleMoneda };
         return ResponseDto<TasaCambioDto>.Ok(dto);

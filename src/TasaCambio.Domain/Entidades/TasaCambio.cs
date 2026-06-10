@@ -4,7 +4,6 @@ namespace TasaCambio.Domain.Entidades;
 
 public sealed class TasaCambio : EntidadBase
 {
-    public string Empresa { get; private set; } = string.Empty;
     public string CodigoMoneda { get; private set; } = string.Empty;
     public DateOnly Fecha { get; private set; }
     public decimal ValorCompra { get; private set; }
@@ -16,7 +15,6 @@ public sealed class TasaCambio : EntidadBase
     private TasaCambio() { }
 
     public static TasaCambio Crear(
-        string empresa,
         string codigoMoneda,
         DateOnly fecha,
         decimal valorCompra,
@@ -28,7 +26,6 @@ public sealed class TasaCambio : EntidadBase
 
         return new TasaCambio
         {
-            Empresa = empresa.Trim().ToUpper(),
             CodigoMoneda = codigoMoneda.Trim().ToUpper(),
             Fecha = fecha,
             ValorCompra = valorCompra,

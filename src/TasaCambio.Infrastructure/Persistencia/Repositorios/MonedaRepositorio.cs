@@ -8,15 +8,14 @@ internal sealed class MonedaRepositorio : RepositorioBase<Moneda>, IMonedaReposi
 {
     public MonedaRepositorio(TasaCambioDbContext contexto) : base(contexto) { }
 
-    public async Task<Moneda?> ObtenerPorCodigoAsync(string empresa, string codigo, CancellationToken ct = default)
+    public async Task<Moneda?> ObtenerPorCodigoAsync(string codigo, CancellationToken ct = default)
         => await _contexto.Monedas
             .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Empresa == empresa.ToUpper() && m.Codigo == codigo.ToUpper(), ct);
+            .FirstOrDefaultAsync(m => m.Codigo == codigo.ToUpper(), ct);
 
-    public async Task<IReadOnlyList<Moneda>> ListarPorEmpresaAsync(string empresa, CancellationToken ct = default)
+    public async Task<IReadOnlyList<Moneda>> ListarTodasAsync(CancellationToken ct = default)
         => await _contexto.Monedas
             .AsNoTracking()
-            .Where(m => m.Empresa == empresa.ToUpper())
             .OrderBy(m => m.Codigo)
             .ToListAsync(ct);
 }
