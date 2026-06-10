@@ -6,10 +6,10 @@
 
 USE tasa_cambio_db;
 
-INSERT INTO ttc_tasa_cambio (
-    ttc_codigo_moneda, ttc_fecha,
-    ttc_valor_compra, ttc_valor_venta,
-    ttc_fuente_origen, ttc_usuario_reg
+INSERT INTO tttasacambio (
+    CodigoMoneda, Fecha,
+    ValorCompra, ValorVenta,
+    FuenteOrigen, UsuarioReg
 ) VALUES
     ('USD', '2025-06-01', 3.700, 3.750, 'SBS', 'SISTEMA'),
     ('USD', '2025-06-02', 3.705, 3.755, 'SBS', 'SISTEMA'),
@@ -20,7 +20,7 @@ INSERT INTO ttc_tasa_cambio (
     ('EUR', '2025-06-02', 4.015, 4.075, 'SBS', 'SISTEMA'),
     ('EUR', '2025-06-03', 4.025, 4.085, 'SBS', 'SISTEMA')
 ON DUPLICATE KEY UPDATE
-    ttc_valor_compra = VALUES(ttc_valor_compra),
-    ttc_valor_venta  = VALUES(ttc_valor_venta),
-    ttc_usuario_act  = 'SISTEMA',
-    ttc_fecha_act    = CURRENT_TIMESTAMP;
+    ValorCompra = VALUES(ValorCompra),
+    ValorVenta  = VALUES(ValorVenta),
+    UsuarioAct  = 'SISTEMA',
+    FechaAct    = CURRENT_TIMESTAMP;

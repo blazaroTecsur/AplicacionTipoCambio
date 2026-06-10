@@ -5,10 +5,10 @@
 
 USE tasa_cambio_db;
 
-INSERT INTO ttc_moneda (
-    ttc_codigo, ttc_descripcion, ttc_simbolo,
-    ttc_codigo_sunat, ttc_descripcion_iso4217,
-    ttc_usuario_reg
+INSERT INTO ttmoneda (
+    Codigo, Descripcion, Simbolo,
+    CodigoSunat, DescripcionIso4217,
+    UsuarioReg
 ) VALUES
     ('USD', 'Dólar Americano',     '$',  '02', 'USD', 'SISTEMA'),
     ('EUR', 'Euro',                '€',  '05', 'EUR', 'SISTEMA'),
@@ -19,6 +19,6 @@ INSERT INTO ttc_moneda (
     ('CAD', 'Dólar Canadiense',    '$',  '10', 'CAD', 'SISTEMA'),
     ('BRL', 'Real Brasileño',      'R$', '11', 'BRL', 'SISTEMA')
 ON DUPLICATE KEY UPDATE
-    ttc_descripcion = VALUES(ttc_descripcion),
-    ttc_usuario_act = 'SISTEMA',
-    ttc_fecha_act   = CURRENT_TIMESTAMP;
+    Descripcion = VALUES(Descripcion),
+    UsuarioAct  = 'SISTEMA',
+    FechaAct    = CURRENT_TIMESTAMP;
