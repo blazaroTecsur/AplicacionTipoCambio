@@ -38,11 +38,12 @@ public sealed class TasaCambio : EntidadBase
         };
     }
 
-    public void ActualizarValores(decimal valorCompra, decimal valorVenta, string usuario)
+    public void ActualizarValores(decimal valorCompra, decimal valorVenta, string usuario, string? fuenteOrigen = null)
     {
         ValidarValores(valorCompra, valorVenta);
         ValorCompra = valorCompra;
         ValorVenta = valorVenta;
+        if (fuenteOrigen is not null) FuenteOrigen = fuenteOrigen;
         UsuarioAct = usuario;
         FechaAct = DateTime.UtcNow;
     }
