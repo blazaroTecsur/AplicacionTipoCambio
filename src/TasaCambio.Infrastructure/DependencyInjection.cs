@@ -17,8 +17,10 @@ public static class DependencyInjection
         var connectionString = config.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Cadena de conexión 'DefaultConnection' no configurada.");
 
+        var serverVersion = ServerVersion.AutoDetect(connectionString);
+
         services.AddDbContext<TasaCambioDbContext>(options =>
-            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+            options.UseMySql(connectionString, serverVersion));
 
         services.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
         services.AddScoped<IServicioAuditoria, ServicioAuditoria>();
