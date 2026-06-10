@@ -7,17 +7,11 @@ public sealed class SbsWorkerConfig
     public int IntervaloBusquedaMinutos { get; init; } = 30;
     public int ValidacionPartesEnteras { get; init; } = 2;
     public int ValidacionPartesDecimales { get; init; } = 6;
-    public List<TrabajoSbs> Trabajos { get; init; } = [];
+    public List<string> Monedas { get; init; } = [];
 
     public bool EstaEnVentanaActualizacion()
     {
         var horaActual = DateTime.Now.Hour;
         return horaActual >= HoraInicioRegistro || horaActual <= HoraFinRegistro;
     }
-}
-
-public sealed class TrabajoSbs
-{
-    public string Empresa { get; init; } = string.Empty;
-    public string CodigoMoneda { get; init; } = string.Empty;
 }

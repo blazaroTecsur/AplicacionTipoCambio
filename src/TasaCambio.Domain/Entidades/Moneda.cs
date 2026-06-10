@@ -2,7 +2,6 @@ namespace TasaCambio.Domain.Entidades;
 
 public sealed class Moneda : EntidadBase
 {
-    public string Empresa { get; private set; } = string.Empty;
     public string Codigo { get; private set; } = string.Empty;
     public string Descripcion { get; private set; } = string.Empty;
     public string Simbolo { get; private set; } = string.Empty;
@@ -11,15 +10,13 @@ public sealed class Moneda : EntidadBase
 
     private Moneda() { }
 
-    public static Moneda Crear(string empresa, string codigo, string descripcion, string simbolo, string usuario)
+    public static Moneda Crear(string codigo, string descripcion, string simbolo, string usuario)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(empresa);
         ArgumentException.ThrowIfNullOrWhiteSpace(codigo);
         ArgumentException.ThrowIfNullOrWhiteSpace(descripcion);
 
         return new Moneda
         {
-            Empresa = empresa.Trim().ToUpper(),
             Codigo = codigo.Trim().ToUpper(),
             Descripcion = descripcion.Trim(),
             Simbolo = simbolo.Trim(),

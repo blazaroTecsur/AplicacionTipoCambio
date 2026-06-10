@@ -13,7 +13,6 @@ internal sealed class MonedaConfiguracion : IEntityTypeConfiguration<Moneda>
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasColumnName("ttc_id").ValueGeneratedOnAdd();
 
-        builder.Property(x => x.Empresa).HasColumnName("ttc_empresa").HasMaxLength(20).IsRequired();
         builder.Property(x => x.Codigo).HasColumnName("ttc_codigo").HasMaxLength(10).IsRequired();
         builder.Property(x => x.Descripcion).HasColumnName("ttc_descripcion").HasMaxLength(100).IsRequired();
         builder.Property(x => x.Simbolo).HasColumnName("ttc_simbolo").HasMaxLength(10).IsRequired();
@@ -25,8 +24,8 @@ internal sealed class MonedaConfiguracion : IEntityTypeConfiguration<Moneda>
         builder.Property(x => x.UsuarioAct).HasColumnName("ttc_usuario_act").HasMaxLength(50);
         builder.Property(x => x.FechaAct).HasColumnName("ttc_fecha_act");
 
-        builder.HasIndex(x => new { x.Empresa, x.Codigo })
+        builder.HasIndex(x => x.Codigo)
             .IsUnique()
-            .HasDatabaseName("idx_ttc_moneda_empresa_codigo");
+            .HasDatabaseName("idx_ttc_moneda_codigo");
     }
 }

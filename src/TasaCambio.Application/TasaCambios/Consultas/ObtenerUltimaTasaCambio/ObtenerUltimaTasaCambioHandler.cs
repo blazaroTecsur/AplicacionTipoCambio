@@ -1,6 +1,8 @@
 using Mapster;
 using MediatR;
 using TasaCambio.Application.Comun.Dtos;
+using TasaCambio.Application.Monedas;
+using TasaCambio.Domain.Comun;
 using TasaCambio.Domain.Excepciones;
 using TasaCambio.Domain.Interfaces;
 
@@ -14,9 +16,27 @@ internal sealed class ObtenerUltimaTasaCambioHandler : IRequestHandler<ObtenerUl
 
     public async Task<ResponseDto<TasaCambioDto>> Handle(ObtenerUltimaTasaCambioQuery request, CancellationToken ct)
     {
-        var tasa = await _uow.TasaCambios.ObtenerUltimaHastaFechaAsync(request.Empresa, request.CodigoMoneda, request.HastaFecha, ct)
-            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), $"{request.Empresa}/{request.CodigoMoneda}/hasta-{request.HastaFecha}");
+        var detalleMoneda = (await _uow.Monedas.ObtenerPorCodigoAsync(request.CodigoMoneda, ct))
+            ?.Adapt<MonedaDto>();
 
-        return ResponseDto<TasaCambioDto>.Ok(tasa.Adapt<TasaCambioDto>());
+        if (request.CodigoMoneda.Trim().Equals(Constantes.CodigoMonedaNacional, StringComparison.OrdinalIgnoreCase))
+        {
+            return ResponseDto<TasaCambioDto>.Ok(new TasaCambioDto
+            {
+                CodigoMoneda = Constantes.CodigoMonedaNacional,
+                Fecha = request.HastaFecha,
+                ValorCompra = 1m,
+                ValorVenta = 1m,
+                TasaPromedio = 1m,
+                FechaSbs = request.HastaFecha,
+                DetalleMoneda = detalleMoneda
+            });
+        }
+
+        var tasa = await _uow.TasaCambios.ObtenerUltimaHastaFechaAsync(request.CodigoMoneda, request.HastaFecha, ct)
+            ?? throw new NotFoundException(nameof(Domain.Entidades.TasaCambio), $"{request.CodigoMoneda}/hasta-{request.HastaFecha}");
+
+        var dto = tasa.Adapt<TasaCambioDto>() with { DetalleMoneda = detalleMoneda };
+        return ResponseDto<TasaCambioDto>.Ok(dto);
     }
 }

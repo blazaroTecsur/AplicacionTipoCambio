@@ -49,29 +49,29 @@ public class SbsSyncWorker : BackgroundService
     {
         var fecha = DateOnly.FromDateTime(DateTime.Today);
 
-        foreach (var trabajo in _config.Trabajos)
+        foreach (var codigoMoneda in _config.Monedas)
         {
             try
             {
                 using var scope = _scopeFactory.CreateScope();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                var comando = new SincronizarDesdeSbsCommand(trabajo.Empresa, trabajo.CodigoMoneda, fecha);
+                var comando = new SincronizarDesdeSbsCommand(codigoMoneda, fecha);
                 var resultado = await mediator.Send(comando, ct);
 
                 if (resultado.Success)
                     _logger.LogInformation(
-                        "[ACTUALIZACIÓN] {Empresa}/{Moneda} - Compra: {Compra} / Venta: {Venta}",
-                        trabajo.Empresa, trabajo.CodigoMoneda,
+                        "[ACTUALIZACIÓN] {Moneda} - Compra: {Compra} / Venta: {Venta}",
+                        codigoMoneda,
                         resultado.Data?.ValorCompra, resultado.Data?.ValorVenta);
                 else
                     _logger.LogWarning(
-                        "[ACTUALIZACIÓN] {Empresa}/{Moneda} - {Errores}",
-                        trabajo.Empresa, trabajo.CodigoMoneda, string.Join(", ", resultado.Errors));
+                        "[ACTUALIZACIÓN] {Moneda} - {Errores}",
+                        codigoMoneda, string.Join(", ", resultado.Errors));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[ACTUALIZACIÓN] Error en {Empresa}/{Moneda}", trabajo.Empresa, trabajo.CodigoMoneda);
+                _logger.LogError(ex, "[ACTUALIZACIÓN] Error en {Moneda}", codigoMoneda);
             }
         }
     }
@@ -80,28 +80,28 @@ public class SbsSyncWorker : BackgroundService
     {
         var fecha = DateOnly.FromDateTime(DateTime.Today);
 
-        foreach (var trabajo in _config.Trabajos)
+        foreach (var codigoMoneda in _config.Monedas)
         {
             try
             {
                 using var scope = _scopeFactory.CreateScope();
                 var servicioSbs = scope.ServiceProvider.GetRequiredService<Application.Comun.Interfaces.IServicioSbs>();
 
-                var resultado = await servicioSbs.ObtenerTasaCambioAsync(trabajo.CodigoMoneda, fecha, ct);
+                var resultado = await servicioSbs.ObtenerTasaCambioAsync(codigoMoneda, fecha, ct);
 
                 if (resultado is not null)
                     _logger.LogInformation(
-                        "[VALIDACIÓN] {Empresa}/{Moneda} - Compra: {Compra} / Venta: {Venta} (no se guarda en BD)",
-                        trabajo.Empresa, trabajo.CodigoMoneda,
+                        "[VALIDACIÓN] {Moneda} - Compra: {Compra} / Venta: {Venta} (no se guarda en BD)",
+                        codigoMoneda,
                         resultado.ValorCompra, resultado.ValorVenta);
                 else
                     _logger.LogWarning(
-                        "[VALIDACIÓN] {Empresa}/{Moneda} - Sin datos en SBS para {Fecha}",
-                        trabajo.Empresa, trabajo.CodigoMoneda, fecha);
+                        "[VALIDACIÓN] {Moneda} - Sin datos en SBS para {Fecha}",
+                        codigoMoneda, fecha);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "[VALIDACIÓN] Error en {Empresa}/{Moneda}", trabajo.Empresa, trabajo.CodigoMoneda);
+                _logger.LogError(ex, "[VALIDACIÓN] Error en {Moneda}", codigoMoneda);
             }
         }
     }

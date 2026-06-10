@@ -13,7 +13,7 @@ internal sealed class ListarMonedasHandler : IRequestHandler<ListarMonedasQuery,
 
     public async Task<ResponseDto<IReadOnlyList<MonedaDto>>> Handle(ListarMonedasQuery request, CancellationToken ct)
     {
-        var monedas = await _uow.Monedas.ListarPorEmpresaAsync(request.Empresa, ct);
+        var monedas = await _uow.Monedas.ListarTodasAsync(ct);
         return ResponseDto<IReadOnlyList<MonedaDto>>.Ok(monedas.Adapt<IReadOnlyList<MonedaDto>>());
     }
 }
