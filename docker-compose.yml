@@ -60,6 +60,9 @@ services:
       - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./scripts/sql/01_crear_base_datos.sql:/docker-entrypoint-initdb.d/01_crear_base_datos.sql:ro
+      - ./scripts/sql/02_crear_tablas.sql:/docker-entrypoint-initdb.d/02_crear_tablas.sql:ro
+      - ./scripts/sql/03_datos_iniciales.sql:/docker-entrypoint-initdb.d/03_datos_iniciales.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
