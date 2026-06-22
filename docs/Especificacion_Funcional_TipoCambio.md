@@ -269,47 +269,36 @@ Se recomienda utilizar la **API del BCRP** como fuente principal por las siguien
 
 ## REQUISITOS
 
-- **Sistema:** Plataforma interna ERP
-- **Aplicacion:** Modulo de Tipo de Cambio (Worker + API REST)
-- **Base de datos:** MySQL 8.3 (`erp_tecsur_pinterna`)
-- **Tecnologia:** .NET 8, ASP.NET Core, Entity Framework Core
+| Campo | Detalle |
+|-------|---------|
+| Sistema | Plataforma interna ERP |
+| Aplicacion | Modulo de Tipo de Cambio |
 
 ### Historias de Usuario
 
 ---
 
-#### HU-01 - Sincronizacion automatica del tipo de cambio
+#### HU-01 - Obtencion automatica del tipo de cambio
 
-**Como** administrador del sistema, **quiero** que un proceso automatizado consulte la fuente de tipo de cambio seleccionada (BCRP, SBS o SUNAT) dentro de una ventana horaria configurable, **para** que las tasas de cambio esten disponibles antes del inicio de operaciones.
+**Como** analista contable, **quiero** que el sistema obtenga automaticamente el tipo de cambio oficial del dia desde una fuente confiable (BCRP, SBS o SUNAT), **para** no tener que buscarlo ni registrarlo manualmente cada dia.
 
 **Criterios de aceptacion:**
 
-- El Worker consulta la fuente configurada cada 30 minutos (configurable) dentro de la ventana de actualizacion.
-- Las monedas a sincronizar son configurables: USD y EUR por defecto.
-- Si la tasa de una moneda para una fecha ya existe en la base de datos y los valores son iguales, no se modifica el registro.
-- Si la tasa existe pero los valores difieren (correccion de la fuente), se actualiza el registro existente.
-- Si la tasa no existe, se crea un nuevo registro.
-- El campo `FuenteOrigen` registra la fuente utilizada (`BCRP`, `SBS`, `SUNAT`, `MANUAL`).
-- Toda operacion de sincronizacion queda registrada en la auditoria.
-- Si la fuente no responde, el sistema reintenta automaticamente hasta 3 veces con espera exponencial (2s, 4s, 8s) y circuit breaker (se detiene despues de 5 fallos consecutivos por 30 segundos).
-- Fuera de la ventana de actualizacion, el Worker solo consulta y registra en log (no persiste en base de datos).
+- El sistema consulta automaticamente la fuente oficial en el horario en que se publican las tasas (por la tarde del dia habil).
+- Las monedas que se obtienen son configurables. Inicialmente: Dolar (USD) y Euro (EUR).
+- Si el tipo de cambio del dia ya fue registrado y no ha cambiado, no se duplica ni se modifica.
+- Si la fuente publica una correccion, el sistema actualiza automaticamente el valor registrado.
+- Si la fuente no esta disponible temporalmente, el sistema reintenta la consulta de forma automatica.
+- Cada registro queda identificado con la fuente de origen (BCRP, SBS, SUNAT o MANUAL).
+- Toda operacion de obtencion queda registrada para auditoria.
+- El tipo de cambio del dia debe estar disponible antes de las 7:00 AM del dia siguiente para el inicio de operaciones.
 
-**Parametros configurables (via variables de entorno):**
+**Ventana horaria de obtencion segun fuente:**
 
-| Variable | Descripcion | Valor por defecto |
-|----------|-------------|-------------------|
-| `Fuente__Tipo` | Fuente de datos (`BCRP`, `SBS`, `SUNAT`) | `BCRP` |
-| `Fuente__HoraInicioRegistro` | Hora inicio de la ventana de actualizacion | 14 (2 PM) |
-| `Fuente__HoraFinRegistro` | Hora fin de la ventana de actualizacion | 18 (6 PM) |
-| `Fuente__IntervaloBusquedaMinutos` | Intervalo entre consultas | 30 |
-| `Fuente__Monedas` | Lista de monedas a sincronizar | `["USD", "EUR"]` |
-
-**Ventana horaria recomendada por fuente:**
-
-| Fuente | Ventana sugerida | Motivo |
-|--------|-----------------|--------|
-| BCRP | 2:00 PM - 6:00 PM | TC SBS se publica despues de la 1:30 PM |
-| SBS Promedio Ponderado | 2:30 PM - 6:00 PM | Se publica antes de las 2:00 PM |
+| Fuente | Horario de consulta sugerido | Motivo |
+|--------|------------------------------|--------|
+| BCRP | 2:00 PM - 6:00 PM | El BCRP publica despues de la 1:30 PM |
+| SBS Promedio Ponderado | 2:30 PM - 6:00 PM | La SBS publica antes de las 2:00 PM |
 | SBS Contable | 3:00 PM - 8:00 PM | Horario no especificado oficialmente |
 | SUNAT | 3:00 PM - 8:00 PM | Se publica despues que la SBS |
 
@@ -317,98 +306,80 @@ Se recomienda utilizar la **API del BCRP** como fuente principal por las siguien
 
 #### HU-02 - Consulta de monedas disponibles
 
-**Como** usuario del ERP, **quiero** consultar la lista de monedas registradas en el sistema, **para** conocer cuales monedas tienen tipo de cambio disponible.
+**Como** usuario del ERP, **quiero** ver la lista de monedas registradas en el sistema, **para** saber para cuales monedas puedo consultar el tipo de cambio.
 
 **Criterios de aceptacion:**
 
-- El endpoint `GET /api/v1/moneda` devuelve la lista completa de monedas con: codigo, descripcion, simbolo, codigo SUNAT y descripcion ISO 4217.
-- No requiere parametros de entrada.
-- Requiere autenticacion via header `X-Api-Key`.
-- Monedas iniciales del sistema: USD, EUR, PEN, GBP, JPY, CHF, CAD, BRL.
-
-**Ejemplo de respuesta:**
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "codigo": "USD",
-      "descripcion": "Dolar Americano",
-      "simbolo": "$",
-      "codigoSunat": "02",
-      "descripcionIso4217": "USD"
-    }
-  ],
-  "message": null,
-  "errors": []
-}
-```
+- El sistema muestra la lista completa de monedas con: codigo, nombre, simbolo y codigo SUNAT.
+- Monedas iniciales: Dolar Americano (USD), Euro (EUR), Sol Peruano (PEN), Libra Esterlina (GBP), Yen Japones (JPY), Franco Suizo (CHF), Dolar Canadiense (CAD) y Real Brasileno (BRL).
+- El acceso a la consulta requiere autenticacion.
 
 ---
 
 #### HU-03 - Consulta de tasas de cambio por moneda y periodo
 
-**Como** usuario del ERP (contabilidad, tesoreria), **quiero** consultar las tasas de cambio de una moneda especifica filtradas por anio y/o mes, **para** obtener el historico de tasas registradas.
+**Como** analista contable, **quiero** consultar las tasas de cambio de una moneda especifica filtradas por anio y/o mes, **para** revisar el historico de tipos de cambio registrados en un periodo determinado.
 
 **Criterios de aceptacion:**
 
-- El endpoint `GET /api/v1/tipocambio/{codigoMoneda}` devuelve todas las tasas registradas para la moneda indicada.
-- Acepta filtros opcionales: `anio` y `mes` (query parameters).
-- Cada registro incluye: fecha, valor de compra, valor de venta, tasa promedio (calculada), fuente de origen y detalle de la moneda.
-- Requiere autenticacion via header `X-Api-Key`.
+- El usuario indica la moneda a consultar (por ejemplo, USD).
+- Opcionalmente, puede filtrar por anio y/o mes para acotar el periodo.
+- Por cada dia se muestra: fecha, valor de compra, valor de venta, tasa promedio, fuente de origen y detalle de la moneda.
+- El acceso a la consulta requiere autenticacion.
 
 ---
 
 #### HU-04 - Consulta de tasa de cambio por fecha exacta
 
-**Como** modulo del ERP (registro de comprobantes, ordenes de compra), **quiero** obtener la tasa de cambio de una moneda para una fecha especifica, **para** utilizar el tipo de cambio correcto en las operaciones contables del dia.
+**Como** analista contable o modulo del ERP (comprobantes de pago, ordenes de compra), **quiero** obtener el tipo de cambio de una moneda para una fecha especifica, **para** aplicar el tipo de cambio correcto en las operaciones contables de ese dia.
 
 **Criterios de aceptacion:**
 
-- El endpoint `GET /api/v1/tipocambio/{codigoMoneda}/{fecha}` devuelve la tasa para la fecha exacta indicada (formato `yyyy-MM-dd`).
-- Si no existe tasa para esa fecha y moneda, devuelve HTTP 404 con mensaje descriptivo.
-- Para la moneda nacional (codigo `NSOLES`), siempre devuelve valores fijos de compra = 1, venta = 1, promedio = 1 (sin consultar la base de datos).
-- Requiere autenticacion via header `X-Api-Key`.
+- El usuario indica la moneda y la fecha a consultar (por ejemplo, USD del 22/06/2026).
+- El sistema devuelve: valor de compra, valor de venta, tasa promedio y fuente de origen.
+- Si no existe tipo de cambio para esa fecha (feriado, fin de semana o aun no publicado), el sistema informa que no se encontro el dato.
+- Para la moneda nacional (Soles), siempre devuelve compra = 1, venta = 1 y promedio = 1 (por definicion, sin necesidad de consulta externa).
+- El acceso a la consulta requiere autenticacion.
 
 ---
 
 #### HU-05 - Consulta de la ultima tasa de cambio disponible
 
-**Como** modulo del ERP, **quiero** obtener la tasa de cambio mas reciente disponible para una moneda hasta una fecha dada, **para** utilizar la ultima tasa vigente cuando no exista tasa para el dia exacto (feriados, fines de semana).
+**Como** analista contable o modulo del ERP, **quiero** obtener el tipo de cambio mas reciente disponible para una moneda hasta una fecha dada, **para** utilizar el ultimo tipo de cambio vigente cuando no exista dato para el dia exacto (feriados, fines de semana).
 
 **Criterios de aceptacion:**
 
-- El endpoint `GET /api/v1/tipocambio/{codigoMoneda}/{fecha}/ultima` devuelve la tasa con fecha menor o igual a la indicada.
-- Si no existe ninguna tasa anterior o igual a la fecha, devuelve HTTP 404.
-- Requiere autenticacion via header `X-Api-Key`.
+- El usuario indica la moneda y una fecha limite.
+- El sistema busca la tasa de cambio mas reciente registrada con fecha menor o igual a la indicada.
+- Si no existe ningun registro anterior, el sistema informa que no se encontro el dato.
+- El acceso a la consulta requiere autenticacion.
+
+**Ejemplo:** Si consulto USD al 22/06/2026 (domingo) y no hay dato para ese dia, el sistema devuelve la tasa del viernes 20/06/2026 (ultimo dia habil con publicacion).
 
 ---
 
-#### HU-06 - Seguridad de la API
+#### HU-06 - Seguridad del acceso al servicio
 
-**Como** administrador del sistema, **quiero** que todos los endpoints de la API esten protegidos con una API Key, **para** evitar accesos no autorizados.
+**Como** administrador del sistema, **quiero** que las consultas de tipo de cambio esten protegidas con una clave de acceso, **para** evitar que usuarios o sistemas no autorizados consuman la informacion.
 
 **Criterios de aceptacion:**
 
-- Toda peticion (excepto `/health` y `/swagger`) debe incluir el header `X-Api-Key` con el valor configurado en el servidor.
-- Si no se envia el header, se responde HTTP 401 con mensaje "API Key requerida."
-- Si el valor es incorrecto, se responde HTTP 401 con mensaje "API Key invalida."
-- La API Key se genera con un algoritmo criptograficamente seguro (CSPRNG) de al menos 256 bits.
-- La API Key se almacena como variable de entorno, nunca en codigo fuente.
+- Toda consulta al servicio debe incluir una clave de acceso previamente asignada.
+- Si no se proporciona la clave, el sistema rechaza la consulta con el mensaje "API Key requerida."
+- Si la clave es incorrecta, el sistema rechaza la consulta con el mensaje "API Key invalida."
+- La clave de acceso se genera de forma segura y se almacena en la configuracion del servidor (no en el codigo fuente).
 
 ---
 
-#### HU-07 - Monitoreo y salud del servicio
+#### HU-07 - Monitoreo y disponibilidad del servicio
 
-**Como** equipo de infraestructura, **quiero** un endpoint de health check, **para** monitorear el estado de disponibilidad de la API.
+**Como** equipo de infraestructura, **quiero** poder verificar si el servicio de tipo de cambio esta funcionando correctamente, **para** detectar rapidamente si hay algun problema de disponibilidad.
 
 **Criterios de aceptacion:**
 
-- El endpoint `GET /health` responde HTTP 200 con `Healthy` si el servicio esta operativo.
-- No requiere autenticacion.
-- Puede ser utilizado por balanceadores de carga y herramientas de monitoreo.
+- Existe una consulta de verificacion que responde si el servicio esta operativo ("Healthy") o no.
+- Esta consulta no requiere clave de acceso (para que herramientas de monitoreo puedan usarla).
+- Puede ser utilizada por balanceadores de carga y sistemas de alertas.
 
 ---
 
