@@ -383,6 +383,33 @@ Se recomienda utilizar la **API del BCRP** como fuente principal por las siguien
 
 ---
 
+#### HU-08 - Registro y actualizacion manual del tipo de cambio
+
+**Como** analista contable, **quiero** contar con una interfaz web donde pueda registrar o actualizar manualmente el tipo de cambio de cualquier moneda para una fecha determinada, **para** cubrir los casos en que la fuente automatica no disponga del dato o se requiera aplicar un valor especifico aprobado por el area contable.
+
+**Criterios de aceptacion:**
+
+- La interfaz web permite seleccionar la moneda y la fecha para la cual se desea registrar o actualizar el tipo de cambio.
+- El usuario ingresa los valores de compra y venta. El sistema calcula automaticamente el promedio.
+- Si ya existe un tipo de cambio registrado para esa moneda y fecha, el sistema muestra los valores actuales y permite actualizarlos previa confirmacion.
+- Si no existe registro previo, el sistema permite crear uno nuevo.
+- El valor de compra no puede ser mayor al valor de venta. Ambos deben ser mayores a cero.
+- El registro manual queda identificado con la fuente de origen "MANUAL" para diferenciarlo de los obtenidos automaticamente.
+- El sistema registra el usuario que realizo el cambio y la fecha/hora de la operacion para fines de auditoria.
+- Solo usuarios autorizados pueden acceder a esta funcionalidad.
+- La interfaz muestra un listado de los ultimos tipos de cambio registrados (automaticos y manuales) para facilitar la verificacion.
+
+**Escenarios de uso:**
+
+| Escenario | Descripcion |
+|-----------|-------------|
+| Fuente no disponible | La fuente automatica (BCRP/SBS) no publico el tipo de cambio a tiempo y se necesita registrarlo manualmente para no retrasar las operaciones del dia. |
+| Moneda sin fuente automatica | Se requiere el tipo de cambio de una moneda que no esta cubierta por la fuente automatica (por ejemplo, GBP si solo se sincroniza USD y EUR). |
+| Correccion contable | El area contable determina que debe aplicarse un valor especifico diferente al publicado por la fuente automatica (por ejemplo, un tipo de cambio de cierre aprobado por gerencia). |
+| Carga historica | Se necesita registrar tipos de cambio de fechas pasadas que no fueron capturados por el proceso automatico. |
+
+---
+
 ## ARQUITECTURA TECNICA
 
 ### Diagrama de componentes
@@ -492,7 +519,6 @@ Header: X-Api-Key: <clave configurada>
 
 ## FUERA DEL ALCANCE
 
-- Registro manual de tasas de cambio via interfaz web (actualmente solo via base de datos o sincronizacion automatica).
 - Notificaciones o alertas automaticas cuando el tipo de cambio no se haya actualizado.
 - Conversion de montos entre monedas (la API solo provee las tasas, no realiza calculos de conversion).
 - Gestion de usuarios y roles para el acceso a la API (actualmente se usa una unica API Key compartida).
