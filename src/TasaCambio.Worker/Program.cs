@@ -1,5 +1,6 @@
 using Serilog;
 using TasaCambio.Application;
+using TasaCambio.Application.Comun.Interfaces;
 using TasaCambio.Infrastructure;
 using TasaCambio.Worker;
 using TasaCambio.Worker.Configuracion;
@@ -21,6 +22,7 @@ try
 
     builder.Services.AgregarAplicacion();
     builder.Services.AgregarInfraestructura(builder.Configuration);
+    builder.Services.AddScoped<IContextoUsuario, ContextoUsuarioSistema>();
 
     builder.Services.AddHostedService<SbsSyncWorker>();
 

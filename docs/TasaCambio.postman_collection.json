@@ -1,0 +1,177 @@
+{
+  "info": {
+    "name": "TasaCambio API",
+    "description": "Colección de endpoints de la API de Tasa de Cambio. Equivalente a la documentación de Swagger.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.tecsur.com.pe:8089",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "CAMBIAR_EN_PRODUCCION",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "No requiere X-Api-Key."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "text/plain" }
+          ],
+          "body": "Healthy"
+        }
+      ]
+    },
+    {
+      "name": "Listar monedas",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-Api-Key", "value": "{{api_key}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/moneda",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "moneda"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"codigo\": \"USD\",\n      \"descripcion\": \"Dólar Americano\",\n      \"simbolo\": \"$\",\n      \"codigoSunat\": \"02\",\n      \"descripcionIso4217\": \"USD\"\n    },\n    {\n      \"id\": 2,\n      \"codigo\": \"EUR\",\n      \"descripcion\": \"Euro\",\n      \"simbolo\": \"€\",\n      \"codigoSunat\": \"05\",\n      \"descripcionIso4217\": \"EUR\"\n    },\n    {\n      \"id\": 3,\n      \"codigo\": \"PEN\",\n      \"descripcion\": \"Sol Peruano\",\n      \"simbolo\": \"S/\",\n      \"codigoSunat\": \"01\",\n      \"descripcionIso4217\": \"PEN\"\n    }\n  ],\n  \"message\": null,\n  \"errors\": []\n}"
+        },
+        {
+          "name": "401 API Key requerida",
+          "status": "Unauthorized",
+          "code": 401,
+          "header": [
+            { "key": "Content-Type", "value": "text/plain" }
+          ],
+          "body": "API Key requerida."
+        }
+      ]
+    },
+    {
+      "name": "Listar tasas de cambio por moneda",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-Api-Key", "value": "{{api_key}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tipocambio/usd?anio=2025&mes=6",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "tipocambio", "usd"],
+          "query": [
+            { "key": "anio", "value": "2025" },
+            { "key": "mes", "value": "6" }
+          ]
+        },
+        "description": "Parámetros query 'anio' y 'mes' son opcionales."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 10,\n      \"codigoMoneda\": \"USD\",\n      \"fecha\": \"2025-06-01\",\n      \"valorCompra\": 3.700,\n      \"valorVenta\": 3.750,\n      \"tasaPromedio\": 3.725,\n      \"fuenteOrigen\": \"SBS\",\n      \"fechaSbs\": \"2025-06-01\",\n      \"detalleMoneda\": {\n        \"id\": 1,\n        \"codigo\": \"USD\",\n        \"descripcion\": \"Dólar Americano\",\n        \"simbolo\": \"$\",\n        \"codigoSunat\": \"02\",\n        \"descripcionIso4217\": \"USD\"\n      }\n    }\n  ],\n  \"message\": null,\n  \"errors\": []\n}"
+        }
+      ]
+    },
+    {
+      "name": "Obtener tasa de cambio por fecha",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-Api-Key", "value": "{{api_key}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tipocambio/usd/2025-06-01",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "tipocambio", "usd", "2025-06-01"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 10,\n    \"codigoMoneda\": \"USD\",\n    \"fecha\": \"2025-06-01\",\n    \"valorCompra\": 3.700,\n    \"valorVenta\": 3.750,\n    \"tasaPromedio\": 3.725,\n    \"fuenteOrigen\": \"SBS\",\n    \"fechaSbs\": \"2025-06-01\",\n    \"detalleMoneda\": {\n      \"id\": 1,\n      \"codigo\": \"USD\",\n      \"descripcion\": \"Dólar Americano\",\n      \"simbolo\": \"$\",\n      \"codigoSunat\": \"02\",\n      \"descripcionIso4217\": \"USD\"\n    }\n  },\n  \"message\": null,\n  \"errors\": []\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"data\": null,\n  \"message\": null,\n  \"errors\": [\n    \"TasaCambio con identificador 'USD-2025-06-01' no fue encontrado.\"\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "Obtener última tasa de cambio",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-Api-Key", "value": "{{api_key}}" }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/tipocambio/usd/2025-06-10/ultima",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "tipocambio", "usd", "2025-06-10", "ultima"]
+        }
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 10,\n    \"codigoMoneda\": \"USD\",\n    \"fecha\": \"2025-06-05\",\n    \"valorCompra\": 3.715,\n    \"valorVenta\": 3.765,\n    \"tasaPromedio\": 3.740,\n    \"fuenteOrigen\": \"SBS\",\n    \"fechaSbs\": \"2025-06-05\",\n    \"detalleMoneda\": {\n      \"id\": 1,\n      \"codigo\": \"USD\",\n      \"descripcion\": \"Dólar Americano\",\n      \"simbolo\": \"$\",\n      \"codigoSunat\": \"02\",\n      \"descripcionIso4217\": \"USD\"\n    }\n  },\n  \"message\": null,\n  \"errors\": []\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": false,\n  \"data\": null,\n  \"message\": null,\n  \"errors\": [\n    \"TasaCambio con identificador 'USD-2025-06-10' no fue encontrado.\"\n  ]\n}"
+        }
+      ]
+    }
+  ]
+}

@@ -37,9 +37,16 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - Sbs__Url=https://api.sbs.gob.pe/tipo-cambio/v1/
-      - Sbs__Token=${SBS_TOKEN}
+      - Sbs__UrlXml=https://www.sbs.gob.pe/app/xmltipocambio/TC_TI_Portal_xml.xml
+      - Sbs__UrlHtml=https://www.sbs.gob.pe/app/pp/SISTIP_PORTAL/Paginas/Publicacion/TipoCambioPromedio.aspx
       - Sbs__HoraInicioRegistro=21
+      - ApiSettings__Infor__SsoBaseUrl=${INFOR_SSO_URL}
+      - ApiSettings__Infor__TokenEndpoint=${INFOR_TOKEN_ENDPOINT}
+      - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
+      - ApiSettings__Infor__ClientSecret=${INFOR_CLIENT_SECRET}
+      - ApiSettings__Infor__IdoBaseUrl=${INFOR_IDO_BASE_URL}
+      - ApiSettings__Infor__AppId=${INFOR_APP_ID}
+      - ApiSettings__Infor__MonedaBase=PEN
       - Sbs__HoraFinRegistro=6
       - Sbs__IntervaloBusquedaMinutos=30
       - Serilog__SeqUrl=http://seq:5341
@@ -60,6 +67,9 @@ services:
       - "${DB_PORT:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./scripts/sql/01_crear_base_datos.sql:/docker-entrypoint-initdb.d/01_crear_base_datos.sql:ro
+      - ./scripts/sql/02_crear_tablas.sql:/docker-entrypoint-initdb.d/02_crear_tablas.sql:ro
+      - ./scripts/sql/03_datos_iniciales.sql:/docker-entrypoint-initdb.d/03_datos_iniciales.sql:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
