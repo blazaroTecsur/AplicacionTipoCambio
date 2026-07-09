@@ -26,7 +26,13 @@ public static class DependencyInjection
         services.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
         services.AddScoped<IServicioAuditoria, ServicioAuditoria>();
 
-        services.AddHttpClient("SbsClient")
+        services.AddHttpClient("SbsXmlClient")
+            .AddTransientHttpErrorPolicy(p =>
+                p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
+            .AddTransientHttpErrorPolicy(p =>
+                p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+
+        services.AddHttpClient("SbsHtmlClient")
             .AddTransientHttpErrorPolicy(p =>
                 p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
             .AddTransientHttpErrorPolicy(p =>
