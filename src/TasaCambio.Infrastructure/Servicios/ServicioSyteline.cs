@@ -1,31 +1,27 @@
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Text.Json;
 using TasaCambio.Application.Comun.Interfaces;
+using TasaCambio.Infrastructure.Infor;
 
 namespace TasaCambio.Infrastructure.Servicios;
 
 internal sealed class ServicioSyteline : IServicioSyteline
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly InforIdoService _idoService;
+    private readonly InforSettings   _settings;
     private readonly ILogger<ServicioSyteline> _logger;
-    private readonly string _baseUrl;
-    private readonly string _usuario;
-    private readonly string _password;
-    private readonly string _sistemaId;
-    private readonly string _monedaBase;
 
-    public ServicioSyteline(IHttpClientFactory httpClientFactory, IConfiguration config, ILogger<ServicioSyteline> logger)
+    private const string IDO = "SLCurrates";
+
+    public ServicioSyteline(
+        InforIdoService idoService,
+        IOptions<InforSettings> settings,
+        ILogger<ServicioSyteline> logger)
     {
-        _httpClientFactory = httpClientFactory;
-        _logger = logger;
-        _baseUrl = config["Syteline:BaseUrl"] ?? throw new InvalidOperationException("'Syteline:BaseUrl' no configurado.");
-        _usuario = config["Syteline:Usuario"] ?? throw new InvalidOperationException("'Syteline:Usuario' no configurado.");
-        _password = config["Syteline:Password"] ?? throw new InvalidOperationException("'Syteline:Password' no configurado.");
-        _sistemaId = config["Syteline:SistemaId"] ?? throw new InvalidOperationException("'Syteline:SistemaId' no configurado.");
-        _monedaBase = config["Syteline:MonedaBase"] ?? "PEN";
+        _idoService = idoService;
+        _settings   = settings.Value;
+        _logger     = logger;
     }
 
     public async Task<bool> RegistrarTasaCambioAsync(
@@ -34,97 +30,75 @@ internal sealed class ServicioSyteline : IServicioSyteline
     {
         try
         {
-            var sessionId = await ObtenerSesionAsync(ct);
-            if (sessionId is null)
-            {
-                _logger.LogWarning("[SYTELINE-IDO] No se pudo obtener sesión para {Moneda}/{Fecha}", codigoMoneda, fecha);
-                return false;
-            }
+            var fechaIdo  = fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-ddTHH:mm:ss");
+            var itemId    = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
 
-            return await ActualizarTasaCambioAsync(sessionId, codigoMoneda, fecha, compra, venta, usuario, ct);
+            var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, incluirClave: itemId is null);
+
+            if (itemId is null)
+                await _idoService.InsertItemAsync(IDO, propiedades, ct: ct);
+            else
+                await _idoService.UpdateItemAsync(IDO, itemId, propiedades, ct: ct);
+
+            _logger.LogInformation(
+                "[SYTELINE-IDO] {Accion} {Moneda} — Compra: {Compra} / Venta: {Venta} / Fecha: {Fecha}",
+                itemId is null ? "INSERT" : "UPDATE", codigoMoneda, compra, venta, fecha);
+
+            return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[SYTELINE-IDO] Error inesperado al registrar {Moneda} para {Fecha}", codigoMoneda, fecha);
+            _logger.LogError(ex, "[SYTELINE-IDO] Error al registrar {Moneda} para {Fecha}", codigoMoneda, fecha);
             return false;
         }
     }
 
-    private async Task<string?> ObtenerSesionAsync(CancellationToken ct)
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private async Task<string?> BuscarItemIdAsync(string codigoMoneda, string fechaIdo, CancellationToken ct)
     {
-        var client = _httpClientFactory.CreateClient("SytelineIdoClient");
-        var url = $"{_baseUrl.TrimEnd('/')}/ido/session";
+        var filter = $"ToCurrCode='{codigoMoneda}' AND FromCurrCode='{_settings.MonedaBase}' AND EffDate='{fechaIdo}'";
+        var result = await _idoService.LoadAsync(IDO, props: "ItemId", filter: filter, recordCap: 1, ct: ct);
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        request.Content = JsonContent.Create(new IdoSesionRequest(_usuario, _password, _sistemaId));
-
-        var response = await client.SendAsync(request, ct);
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogWarning("[SYTELINE-IDO] Sesión rechazada: {Status}", response.StatusCode);
+        if (result.ValueKind == JsonValueKind.Undefined)
             return null;
-        }
 
-        var result = await response.Content.ReadFromJsonAsync<IdoSesionResponse>(cancellationToken: ct);
-        return result?.SessionId;
-    }
-
-    private async Task<bool> ActualizarTasaCambioAsync(
-        string sessionId, string codigoMoneda, DateOnly fecha,
-        decimal compra, decimal venta, string usuario, CancellationToken ct)
-    {
-        var client = _httpClientFactory.CreateClient("SytelineIdoClient");
-        var url = $"{_baseUrl.TrimEnd('/')}/ido/updatecollection/SLCurrates";
-
-        var item = new IdoSLCurratesItem(
-            ToCurrCode: codigoMoneda,
-            FromCurrCode: _monedaBase,
-            EffDate: fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-ddTHH:mm:ss"),
-            BuyRate: compra,
-            SellRate: venta,
-            UserCode: usuario);
-
-        using var request = new HttpRequestMessage(HttpMethod.Post, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Session", sessionId);
-        request.Content = JsonContent.Create(new IdoUpdateCollectionRequest([item]));
-
-        var response = await client.SendAsync(request, ct);
-
-        if (response.IsSuccessStatusCode)
+        // Estructura de respuesta IDO: { "Items": [ [ { "Name": "ItemId", "Value": "xxx" } ] ] }
+        if (result.TryGetProperty("Items", out var items) &&
+            items.GetArrayLength() > 0)
         {
-            _logger.LogInformation(
-                "[SYTELINE-IDO] {Moneda} registrado — Compra: {Compra} / Venta: {Venta} / Fecha: {Fecha}",
-                codigoMoneda, compra, venta, fecha);
-            return true;
+            var primeraFila = items[0];
+            foreach (var prop in primeraFila.EnumerateArray())
+            {
+                if (prop.TryGetProperty("Name",  out var nombre) &&
+                    prop.TryGetProperty("Value", out var valor)  &&
+                    nombre.GetString() == "ItemId")
+                {
+                    return valor.GetString();
+                }
+            }
         }
 
-        var detalle = await response.Content.ReadAsStringAsync(ct);
-        _logger.LogWarning(
-            "[SYTELINE-IDO] Error al actualizar {Moneda}/{Fecha}: {Status} — {Detalle}",
-            codigoMoneda, fecha, response.StatusCode, detalle);
-        return false;
+        return null;
     }
 
-    // ── DTOs internos para la API IDO de SyteLine ──────────────────────────
+    private IEnumerable<InforIdoService.IdoPropiedad> BuildPropiedades(
+        string codigoMoneda, string fechaIdo, decimal compra, decimal venta,
+        string usuario, bool incluirClave)
+    {
+        var props = new List<InforIdoService.IdoPropiedad>();
 
-    private sealed record IdoSesionRequest(
-        [property: JsonPropertyName("userid")] string UserId,
-        [property: JsonPropertyName("password")] string Password,
-        [property: JsonPropertyName("sysid")]   string SysId);
+        if (incluirClave)
+        {
+            props.Add(new("ToCurrCode",   codigoMoneda));
+            props.Add(new("FromCurrCode", _settings.MonedaBase));
+            props.Add(new("EffDate",      fechaIdo));
+        }
 
-    private sealed record IdoSesionResponse(
-        [property: JsonPropertyName("sessionid")] string SessionId);
+        props.Add(new("BuyRate",   compra.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)));
+        props.Add(new("SellRate",  venta.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)));
+        props.Add(new("UserCode",  usuario));
 
-    private sealed record IdoUpdateCollectionRequest(
-        [property: JsonPropertyName("Items")] IdoSLCurratesItem[] Items);
-
-    private sealed record IdoSLCurratesItem(
-        string ToCurrCode,
-        string FromCurrCode,
-        string EffDate,
-        decimal BuyRate,
-        decimal SellRate,
-        string UserCode,
-        // 2 = Modified (SyteLine hace upsert en base a la clave del IDO)
-        [property: JsonPropertyName("_ItemFlags")] int ItemFlags = 2);
+        return props;
+    }
 }

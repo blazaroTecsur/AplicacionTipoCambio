@@ -5,6 +5,7 @@ using Polly;
 using TasaCambio.Application.Comun.Interfaces;
 using TasaCambio.Domain.Interfaces;
 using TasaCambio.Infrastructure.Auditoria;
+using TasaCambio.Infrastructure.Infor;
 using TasaCambio.Infrastructure.Persistencia;
 using TasaCambio.Infrastructure.Servicios;
 
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IUnidadDeTrabajo, UnidadDeTrabajo>();
         services.AddScoped<IServicioAuditoria, ServicioAuditoria>();
 
+        // ── SBS (fuente de tipo de cambio) ────────────────────────────────────
         services.AddHttpClient("SbsXmlClient")
             .AddTransientHttpErrorPolicy(p =>
                 p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
@@ -40,12 +42,21 @@ public static class DependencyInjection
 
         services.AddScoped<IServicioSbs, ServicioSbs>();
 
-        services.AddHttpClient("SytelineIdoClient")
+        // ── Infor SyteLine IDO ────────────────────────────────────────────────
+        services.Configure<InforSettings>(config.GetSection("ApiSettings:Infor"));
+
+        services.AddHttpClient("InforSsoClient")
+            .AddTransientHttpErrorPolicy(p =>
+                p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
+
+        services.AddHttpClient("InforIdoClient")
             .AddTransientHttpErrorPolicy(p =>
                 p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
             .AddTransientHttpErrorPolicy(p =>
                 p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
 
+        services.AddSingleton<InforTokenService>();
+        services.AddScoped<InforIdoService>();
         services.AddScoped<IServicioSyteline, ServicioSyteline>();
 
         return services;
