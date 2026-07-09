@@ -4,5 +4,6 @@ namespace TasaCambio.Worker;
 
 internal sealed class ContextoUsuarioSistema : IContextoUsuario
 {
-    public string NombreUsuario => "WORKER";
+    public string NombreUsuario => "SBS";
+    public string ? IpCliente => null;
 }
