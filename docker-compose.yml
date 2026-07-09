@@ -40,6 +40,11 @@ services:
       - Sbs__UrlXml=https://www.sbs.gob.pe/app/xmltipocambio/TC_TI_Portal_xml.xml
       - Sbs__UrlHtml=https://www.sbs.gob.pe/app/pp/SISTIP_PORTAL/Paginas/Publicacion/TipoCambioPromedio.aspx
       - Sbs__HoraInicioRegistro=21
+      - Syteline__BaseUrl=${SYTELINE_BASE_URL}
+      - Syteline__Usuario=${SYTELINE_USUARIO}
+      - Syteline__Password=${SYTELINE_PASSWORD}
+      - Syteline__SistemaId=${SYTELINE_SISTEMA_ID}
+      - Syteline__MonedaBase=PEN
       - Sbs__HoraFinRegistro=6
       - Sbs__IntervaloBusquedaMinutos=30
       - Serilog__SeqUrl=http://seq:5341

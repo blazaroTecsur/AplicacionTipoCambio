@@ -40,6 +40,14 @@ public static class DependencyInjection
 
         services.AddScoped<IServicioSbs, ServicioSbs>();
 
+        services.AddHttpClient("SytelineIdoClient")
+            .AddTransientHttpErrorPolicy(p =>
+                p.WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))))
+            .AddTransientHttpErrorPolicy(p =>
+                p.CircuitBreakerAsync(5, TimeSpan.FromSeconds(30)));
+
+        services.AddScoped<IServicioSyteline, ServicioSyteline>();
+
         return services;
     }
 }
