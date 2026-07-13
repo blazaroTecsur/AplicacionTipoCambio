@@ -1,10 +1,11 @@
+using Infor.Abstractions.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 
-namespace TasaCambio.Infrastructure.Infor;
+namespace Infor.Infrastructure.Services;
 
-internal sealed class InforTokenService
+internal sealed class InforTokenService : IInforTokenService
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly InforSettings _settings;
@@ -20,8 +21,8 @@ internal sealed class InforTokenService
         ILogger<InforTokenService> logger)
     {
         _httpClientFactory = httpClientFactory;
-        _settings = settings.Value;
-        _logger = logger;
+        _settings          = settings.Value;
+        _logger            = logger;
     }
 
     public async Task<string> ObtenerTokenAsync(CancellationToken ct = default)
@@ -37,13 +38,15 @@ internal sealed class InforTokenService
                 return _tokenCache;
 
             var client = _httpClientFactory.CreateClient("InforSsoClient");
-            var url = $"{_settings.SsoBaseUrl.TrimEnd('/')}{_settings.TokenEndpoint}";
+            var url    = $"{_settings.SsoBaseUrl.TrimEnd('/')}{_settings.TokenEndpoint}";
 
             var form = new FormUrlEncodedContent(
             [
-                KeyValuePair.Create("grant_type",    "client_credentials"),
+                KeyValuePair.Create("grant_type",    "password"),
                 KeyValuePair.Create("client_id",     _settings.ClientId),
                 KeyValuePair.Create("client_secret", _settings.ClientSecret),
+                KeyValuePair.Create("username",      _settings.ServiceAccountKey),
+                KeyValuePair.Create("password",      _settings.ServiceAccountSecret),
             ]);
 
             using var response = await client.PostAsync(url, form, ct);
@@ -52,12 +55,12 @@ internal sealed class InforTokenService
             var json = await response.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
 
-            var root = doc.RootElement;
-            var token      = root.GetProperty("access_token").GetString()!;
-            var expiresIn  = root.TryGetProperty("expires_in", out var expProp) ? expProp.GetInt32() : 3600;
+            var root      = doc.RootElement;
+            var token     = root.GetProperty("access_token").GetString()!;
+            var expiresIn = root.TryGetProperty("expires_in", out var expProp) ? expProp.GetInt32() : 3600;
 
             _tokenCache  = token;
-            _tokenExpira = DateTime.UtcNow.AddSeconds(expiresIn - 60); // renovar 60s antes
+            _tokenExpira = DateTime.UtcNow.AddSeconds(expiresIn - 60);
 
             _logger.LogDebug("[INFOR-SSO] Token obtenido. Expira en {Seg}s.", expiresIn);
             return _tokenCache;

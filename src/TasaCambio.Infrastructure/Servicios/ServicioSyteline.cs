@@ -1,21 +1,22 @@
+using Infor.Abstractions.DTOs;
+using Infor.Abstractions.Interfaces;
+using Infor.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Text.Json;
 using TasaCambio.Application.Comun.Interfaces;
-using TasaCambio.Infrastructure.Infor;
 
 namespace TasaCambio.Infrastructure.Servicios;
 
 internal sealed class ServicioSyteline : IServicioSyteline
 {
-    private readonly InforIdoService _idoService;
-    private readonly InforSettings   _settings;
+    private readonly IInforIdoService _idoService;
+    private readonly InforSettings    _settings;
     private readonly ILogger<ServicioSyteline> _logger;
 
     private const string IDO = "SLCurrates";
 
     public ServicioSyteline(
-        InforIdoService idoService,
+        IInforIdoService idoService,
         IOptions<InforSettings> settings,
         ILogger<ServicioSyteline> logger)
     {
@@ -30,10 +31,10 @@ internal sealed class ServicioSyteline : IServicioSyteline
     {
         try
         {
-            var fechaIdo  = fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-ddTHH:mm:ss");
-            var itemId    = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
+            var fechaIdo = fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-ddTHH:mm:ss");
+            var itemId   = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
 
-            var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, incluirClave: itemId is null);
+            var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, _settings.MonedaBase, incluirClave: itemId is null);
 
             if (itemId is null)
                 await _idoService.InsertItemAsync(IDO, propiedades, ct: ct);
@@ -53,51 +54,35 @@ internal sealed class ServicioSyteline : IServicioSyteline
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-
     private async Task<string?> BuscarItemIdAsync(string codigoMoneda, string fechaIdo, CancellationToken ct)
     {
         var filter = $"ToCurrCode='{codigoMoneda}' AND FromCurrCode='{_settings.MonedaBase}' AND EffDate='{fechaIdo}'";
-        var result = await _idoService.LoadAsync(IDO, props: "ItemId", filter: filter, recordCap: 1, ct: ct);
+        var result = await _idoService.LoadAsync(IDO, properties: "ItemId", filter: filter, recordCap: 1, ct: ct);
 
-        if (result.ValueKind == JsonValueKind.Undefined)
+        if (result.Items.Count == 0)
             return null;
 
-        // Estructura de respuesta IDO: { "Items": [ [ { "Name": "ItemId", "Value": "xxx" } ] ] }
-        if (result.TryGetProperty("Items", out var items) &&
-            items.GetArrayLength() > 0)
-        {
-            var primeraFila = items[0];
-            foreach (var prop in primeraFila.EnumerateArray())
-            {
-                if (prop.TryGetProperty("Name",  out var nombre) &&
-                    prop.TryGetProperty("Value", out var valor)  &&
-                    nombre.GetString() == "ItemId")
-                {
-                    return valor.GetString();
-                }
-            }
-        }
-
-        return null;
+        return result.Items[0]
+            .FirstOrDefault(p => p.Name == "ItemId")
+            ?.Value;
     }
 
-    private IEnumerable<InforIdoService.IdoPropiedad> BuildPropiedades(
+    private static IEnumerable<IdoProperty> BuildPropiedades(
         string codigoMoneda, string fechaIdo, decimal compra, decimal venta,
-        string usuario, bool incluirClave)
+        string usuario, string monedaBase, bool incluirClave)
     {
-        var props = new List<InforIdoService.IdoPropiedad>();
+        var props = new List<IdoProperty>();
 
         if (incluirClave)
         {
-            props.Add(new("ToCurrCode",   codigoMoneda));
-            props.Add(new("FromCurrCode", _settings.MonedaBase));
-            props.Add(new("EffDate",      fechaIdo));
+            props.Add(new IdoProperty { Name = "ToCurrCode",   Value = codigoMoneda });
+            props.Add(new IdoProperty { Name = "FromCurrCode", Value = monedaBase });
+            props.Add(new IdoProperty { Name = "EffDate",      Value = fechaIdo });
         }
 
-        props.Add(new("BuyRate",   compra.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)));
-        props.Add(new("SellRate",  venta.ToString("F4", System.Globalization.CultureInfo.InvariantCulture)));
-        props.Add(new("UserCode",  usuario));
+        props.Add(new IdoProperty { Name = "BuyRate",  Value = compra.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) });
+        props.Add(new IdoProperty { Name = "SellRate", Value = venta.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) });
+        props.Add(new IdoProperty { Name = "UserCode", Value = usuario });
 
         return props;
     }
