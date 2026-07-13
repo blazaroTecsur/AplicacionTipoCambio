@@ -41,9 +41,11 @@ internal sealed class InforTokenService
 
             var form = new FormUrlEncodedContent(
             [
-                KeyValuePair.Create("grant_type",    "client_credentials"),
+                KeyValuePair.Create("grant_type",    "password"),
                 KeyValuePair.Create("client_id",     _settings.ClientId),
                 KeyValuePair.Create("client_secret", _settings.ClientSecret),
+                KeyValuePair.Create("username",      _settings.ServiceAccountKey),
+                KeyValuePair.Create("password",      _settings.ServiceAccountSecret),
             ]);
 
             using var response = await client.PostAsync(url, form, ct);

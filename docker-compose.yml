@@ -44,6 +44,8 @@ services:
       - ApiSettings__Infor__TokenEndpoint=${INFOR_TOKEN_ENDPOINT}
       - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
       - ApiSettings__Infor__ClientSecret=${INFOR_CLIENT_SECRET}
+      - ApiSettings__Infor__ServiceAccountKey=${INFOR_SERVICE_ACCOUNT_KEY}
+      - ApiSettings__Infor__ServiceAccountSecret=${INFOR_SERVICE_ACCOUNT_SECRET}
       - ApiSettings__Infor__IdoBaseUrl=${INFOR_IDO_BASE_URL}
       - ApiSettings__Infor__AppId=${INFOR_APP_ID}
       - ApiSettings__Infor__MonedaBase=PEN
