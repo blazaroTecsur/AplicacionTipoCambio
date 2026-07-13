@@ -38,7 +38,7 @@ internal sealed class InforTokenService : IInforTokenService
                 return _tokenCache;
 
             var client = _httpClientFactory.CreateClient("InforSsoClient");
-            var url    = $"{_settings.SsoBaseUrl.TrimEnd('/')}{_settings.TokenEndpoint}";
+            var url = _settings.TokenEndpoint;
 
             var form = new FormUrlEncodedContent(
             [
