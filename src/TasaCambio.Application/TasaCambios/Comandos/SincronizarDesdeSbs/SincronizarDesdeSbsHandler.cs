@@ -41,12 +41,14 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
         if (sbsDto is null)
             throw new NotFoundException("TasaCambioSbs", $"{request.CodigoMoneda}/{request.Fecha:ddMMyyyy}");
 
+        // La fecha autoritativa es la que publica SBS (puede diferir de la fecha del request)
+        var fechaSbs    = sbsDto.Fecha;
         var valorCompra = decimal.Parse(sbsDto.ValorCompra, System.Globalization.CultureInfo.InvariantCulture);
         var valorVenta  = decimal.Parse(sbsDto.ValorVenta,  System.Globalization.CultureInfo.InvariantCulture);
         var usuario     = _contextoUsuario.NombreUsuario;
 
         // 2. Guardar en BD interna (contingencia)
-        var tasaExistente = await _uow.TasaCambios.ObtenerPorFechaAsync(request.CodigoMoneda, request.Fecha, ct);
+        var tasaExistente = await _uow.TasaCambios.ObtenerPorFechaAsync(request.CodigoMoneda, fechaSbs, ct);
 
         TasaCambioDto tasaDto;
         string mensajeDb;
@@ -73,7 +75,7 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
         else
         {
             var tasa = Domain.Entidades.TasaCambio.Crear(
-                request.CodigoMoneda, request.Fecha, valorCompra, valorVenta, usuario, "SBS");
+                request.CodigoMoneda, fechaSbs, valorCompra, valorVenta, usuario, "SBS");
 
             await _uow.TasaCambios.AgregarAsync(tasa, ct);
             await _uow.GuardarCambiosAsync(ct);
@@ -88,7 +90,7 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
         try
         {
             var sincronizado = await _servicioSyteline.RegistrarTasaCambioAsync(
-                request.CodigoMoneda, request.Fecha, valorCompra, valorVenta, usuario, ct);
+                request.CodigoMoneda, fechaSbs, valorCompra, valorVenta, usuario, ct);
 
             if (!sincronizado)
                 _logger.LogWarning("[SYTELINE] No se pudo registrar {Moneda}/{Fecha} en SyteLine.", request.CodigoMoneda, request.Fecha);

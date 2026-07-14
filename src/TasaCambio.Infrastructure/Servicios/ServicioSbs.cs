@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using HtmlAgilityPack;
 using Microsoft.Extensions.Configuration;
@@ -26,13 +28,13 @@ internal sealed class ServicioSbs : IServicioSbs
     {
         return codigoMoneda.ToUpperInvariant() switch
         {
-            "USD" => ObtenerUsdDesdeXmlAsync(fecha, ct),
-            "EUR" => ObtenerEurDesdeHtmlAsync(fecha, ct),
+            "USD" => ObtenerUsdDesdeXmlAsync(ct),
+            "EUR" => ObtenerEurDesdeHtmlAsync(ct),
             _ => Task.FromResult<SbsTasaCambioDto?>(null)
         };
     }
 
-    private async Task<SbsTasaCambioDto?> ObtenerUsdDesdeXmlAsync(DateOnly fecha, CancellationToken ct)
+    private async Task<SbsTasaCambioDto?> ObtenerUsdDesdeXmlAsync(CancellationToken ct)
     {
         try
         {
@@ -41,33 +43,41 @@ internal sealed class ServicioSbs : IServicioSbs
 
             var doc = XDocument.Parse(xml);
 
-            var compraStr = doc.Descendants()
-                .FirstOrDefault(e => e.Name.LocalName.Equals("compra", StringComparison.OrdinalIgnoreCase))?.Value?.Trim();
-            var ventaStr = doc.Descendants()
-                .FirstOrDefault(e => e.Name.LocalName.Equals("venta", StringComparison.OrdinalIgnoreCase))?.Value?.Trim();
+            var fechaStr  = doc.Descendants().FirstOrDefault(e => e.Name.LocalName.Equals("fecha",  StringComparison.OrdinalIgnoreCase))?.Value?.Trim();
+            var compraStr = doc.Descendants().FirstOrDefault(e => e.Name.LocalName.Equals("compra", StringComparison.OrdinalIgnoreCase))?.Value?.Trim();
+            var ventaStr  = doc.Descendants().FirstOrDefault(e => e.Name.LocalName.Equals("venta",  StringComparison.OrdinalIgnoreCase))?.Value?.Trim();
 
             if (string.IsNullOrWhiteSpace(compraStr) || string.IsNullOrWhiteSpace(ventaStr))
             {
-                _logger.LogWarning("[SBS-XML] No se encontraron valores compra/venta en el XML para {Fecha}", fecha);
+                _logger.LogWarning("[SBS-XML] No se encontraron valores compra/venta en el XML.");
                 return null;
             }
 
+            if (!TryParseFechaSbs(fechaStr, out var fecha))
+            {
+                _logger.LogWarning("[SBS-XML] No se pudo parsear la fecha '{Fecha}' del XML.", fechaStr);
+                return null;
+            }
+
+            _logger.LogDebug("[SBS-XML] Fecha SBS: {Fecha} | Compra: {Compra} | Venta: {Venta}", fecha, compraStr, ventaStr);
+
             return new SbsTasaCambioDto
             {
-                CodigoMoneda = "USD",
+                CodigoMoneda      = "USD",
                 DescripcionMoneda = "Dólar Americano",
-                ValorCompra = NormalizarDecimal(compraStr),
-                ValorVenta = NormalizarDecimal(ventaStr)
+                Fecha             = fecha,
+                ValorCompra       = NormalizarDecimal(compraStr),
+                ValorVenta        = NormalizarDecimal(ventaStr)
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[SBS-XML] Error al obtener tipo de cambio USD para {Fecha}", fecha);
+            _logger.LogError(ex, "[SBS-XML] Error al obtener tipo de cambio USD.");
             return null;
         }
     }
 
-    private async Task<SbsTasaCambioDto?> ObtenerEurDesdeHtmlAsync(DateOnly fecha, CancellationToken ct)
+    private async Task<SbsTasaCambioDto?> ObtenerEurDesdeHtmlAsync(CancellationToken ct)
     {
         try
         {
@@ -77,10 +87,17 @@ internal sealed class ServicioSbs : IServicioSbs
             var doc = new HtmlDocument();
             doc.LoadHtml(html);
 
+            // Buscar la fecha publicada en la página (patrón dd/MM/yyyy)
+            if (!TryExtraerFechaDeHtml(html, out var fecha))
+            {
+                _logger.LogWarning("[SBS-HTML] No se pudo extraer la fecha de la página EUR.");
+                return null;
+            }
+
             var filas = doc.DocumentNode.SelectNodes("//tr");
             if (filas is null)
             {
-                _logger.LogWarning("[SBS-HTML] No se encontraron filas de tabla para {Fecha}", fecha);
+                _logger.LogWarning("[SBS-HTML] No se encontraron filas de tabla para EUR.");
                 return null;
             }
 
@@ -93,37 +110,59 @@ internal sealed class ServicioSbs : IServicioSbs
                 if (!nombreMoneda.Contains("Euro", StringComparison.OrdinalIgnoreCase)) continue;
 
                 var compraStr = celdas[1].InnerText.Trim();
-                var ventaStr = celdas[2].InnerText.Trim();
+                var ventaStr  = celdas[2].InnerText.Trim();
 
                 if (string.IsNullOrWhiteSpace(compraStr) || string.IsNullOrWhiteSpace(ventaStr))
                     continue;
 
+                _logger.LogDebug("[SBS-HTML] Fecha SBS: {Fecha} | Compra: {Compra} | Venta: {Venta}", fecha, compraStr, ventaStr);
+
                 return new SbsTasaCambioDto
                 {
-                    CodigoMoneda = "EUR",
+                    CodigoMoneda      = "EUR",
                     DescripcionMoneda = "Euro",
-                    ValorCompra = NormalizarDecimal(compraStr),
-                    ValorVenta = NormalizarDecimal(ventaStr)
+                    Fecha             = fecha,
+                    ValorCompra       = NormalizarDecimal(compraStr),
+                    ValorVenta        = NormalizarDecimal(ventaStr)
                 };
             }
 
-            _logger.LogWarning("[SBS-HTML] No se encontró la fila de EUR en la página para {Fecha}", fecha);
+            _logger.LogWarning("[SBS-HTML] No se encontró la fila de EUR en la página.");
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[SBS-HTML] Error al obtener tipo de cambio EUR para {Fecha}", fecha);
+            _logger.LogError(ex, "[SBS-HTML] Error al obtener tipo de cambio EUR.");
             return null;
         }
     }
 
-    // Normaliza el separador decimal a punto para que decimal.Parse con InvariantCulture funcione correctamente
+    // Busca el primer patrón dd/MM/yyyy en el HTML de la página SBS
+    private static bool TryExtraerFechaDeHtml(string html, out DateOnly fecha)
+    {
+        var match = Regex.Match(html, @"\b(\d{2}/\d{2}/\d{4})\b");
+        if (match.Success)
+            return TryParseFechaSbs(match.Groups[1].Value, out fecha);
+
+        fecha = default;
+        return false;
+    }
+
+    private static bool TryParseFechaSbs(string? valor, out DateOnly fecha)
+    {
+        if (!string.IsNullOrWhiteSpace(valor) &&
+            DateOnly.TryParseExact(valor.Trim(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out fecha))
+        {
+            return true;
+        }
+        fecha = default;
+        return false;
+    }
+
     private static string NormalizarDecimal(string valor)
     {
-        // Si contiene coma como separador decimal (ej: "3,655"), reemplaza por punto
         if (valor.Contains(',') && !valor.Contains('.'))
             return valor.Replace(',', '.');
-
         return valor;
     }
 }
