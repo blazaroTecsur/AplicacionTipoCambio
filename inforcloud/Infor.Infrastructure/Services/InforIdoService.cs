@@ -68,6 +68,7 @@ internal sealed class InforIdoService : IInforIdoService
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        AgregarHeadersInfor(request);
 
         using var response = await client.SendAsync(request, ct);
         return await LeerRespuestaAsync(response, ct);
@@ -80,10 +81,16 @@ internal sealed class InforIdoService : IInforIdoService
 
         using var request = new HttpRequestMessage(HttpMethod.Post, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        AgregarHeadersInfor(request);
         request.Content = JsonContent.Create(body);
 
         using var response = await client.SendAsync(request, ct);
         return await LeerRespuestaAsync(response, ct);
+    }
+
+    private void AgregarHeadersInfor(HttpRequestMessage request)
+    {
+        request.Headers.Add("X-Infor-MongooseConfig", _settings.AppId);
     }
 
     private async Task<IdoResponse> LeerRespuestaAsync(HttpResponseMessage response, CancellationToken ct)
