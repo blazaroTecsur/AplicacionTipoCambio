@@ -31,7 +31,7 @@ internal sealed class ServicioSyteline : IServicioSyteline
     {
         try
         {
-            var fechaIdo = fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-ddTHH:mm:ss");
+            var fechaIdo = fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyyMMdd HH:mm:ss.fff");
             var itemId   = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
 
             var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, _settings.MonedaBase, incluirClave: itemId is null);
