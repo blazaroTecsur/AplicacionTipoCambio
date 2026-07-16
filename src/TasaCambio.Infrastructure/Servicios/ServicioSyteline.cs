@@ -31,7 +31,8 @@ internal sealed class ServicioSyteline : IServicioSyteline
     {
         try
         {
-            var fechaIdo = fecha.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-ddTHH:mm:ss");
+            // Formato ISO que acepta el filtro IDO (igual al ejemplo del usuario)
+            var fechaIdo = fecha.ToString("yyyy-MM-dd");
             var itemId   = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
 
             var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, _settings.MonedaBase, incluirClave: itemId is null);
@@ -56,14 +57,22 @@ internal sealed class ServicioSyteline : IServicioSyteline
 
     private async Task<string?> BuscarItemIdAsync(string codigoMoneda, string fechaIdo, CancellationToken ct)
     {
-        var filter = $"ToCurrCode='{codigoMoneda}' AND FromCurrCode='{_settings.MonedaBase}' AND EffDate='{fechaIdo}'";
-        var result = await _idoService.LoadAsync(IDO, properties: "ItemId", filter: filter, recordCap: 1, ct: ct);
+        // ToCurrCode = PEN (siempre), FromCurrCode = USD/EUR
+        var filter = $"ToCurrCode='{_settings.MonedaBase}' AND FromCurrCode='{codigoMoneda}' AND EffDate='{fechaIdo}'";
+
+        var result = await _idoService.LoadAsync(
+            IDO,
+            properties: "_ItemId",
+            filter:     filter,
+            recordCap:  1,
+            orderBy:    "EffDate DESC",
+            ct:         ct);
 
         if (result.Items.Count == 0)
             return null;
 
         return result.Items[0]
-            .FirstOrDefault(p => p.Name == "ItemId")
+            .FirstOrDefault(p => p.Name == "_ItemId")
             ?.Value;
     }
 
@@ -75,13 +84,13 @@ internal sealed class ServicioSyteline : IServicioSyteline
 
         if (incluirClave)
         {
-            props.Add(new IdoProperty { Name = "ToCurrCode",   Value = codigoMoneda });
-            props.Add(new IdoProperty { Name = "FromCurrCode", Value = monedaBase });
-            props.Add(new IdoProperty { Name = "EffDate",      Value = fechaIdo });
+            props.Add(new IdoProperty { Name = "ToCurrCode",   Value = monedaBase   }); // PEN
+            props.Add(new IdoProperty { Name = "FromCurrCode", Value = codigoMoneda }); // USD / EUR
+            props.Add(new IdoProperty { Name = "EffDate",      Value = fechaIdo     });
         }
 
         props.Add(new IdoProperty { Name = "BuyRate",  Value = compra.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) });
-        props.Add(new IdoProperty { Name = "SellRate", Value = venta.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) });
+        props.Add(new IdoProperty { Name = "SellRate", Value = venta.ToString("F4",  System.Globalization.CultureInfo.InvariantCulture) });
         props.Add(new IdoProperty { Name = "UserCode", Value = usuario });
 
         return props;
