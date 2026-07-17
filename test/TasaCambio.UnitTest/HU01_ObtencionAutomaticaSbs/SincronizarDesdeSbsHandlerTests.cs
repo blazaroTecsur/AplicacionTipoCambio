@@ -114,8 +114,8 @@ public class SincronizarDesdeSbsHandlerTests
 
         _repoMock.Verify(r => r.AgregarAsync(It.IsAny<TasaCambioEntity>(), It.IsAny<CancellationToken>()), Times.Once,
             "debe insertar una nueva entidad en la BD interna");
-        _uowMock.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once,
-            "debe persistir los cambios");
+        _uowMock.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Exactly(2),
+            "debe persistir dos veces: la inserción y luego el estado de sincronización con SyteLine");
 
         entidadGuardada.Should().NotBeNull();
         entidadGuardada!.CodigoMoneda.Should().Be("USD");
@@ -123,16 +123,17 @@ public class SincronizarDesdeSbsHandlerTests
         entidadGuardada.ValorVenta.Should().Be(3.72m);
     }
 
-    // ── CA-3: ya existe con mismos valores → no actualiza BD ─────────────────
+    // ── CA-3: ya existe con mismos valores y ya sincronizado → no toca la BD ──
 
     [Fact]
-    public async Task Handle_CuandoExisteConMismosValores_NoActualizaBdInterna()
+    public async Task Handle_CuandoExisteConMismosValoresYaSincronizado_NoActualizaBdInterna()
     {
-        // Arrange — los valores son idénticos, no debe tocar la BD
+        // Arrange — valores idénticos y SyteLine ya estaba sincronizado: cero escrituras en BD
         _sbsMock.Setup(s => s.ObtenerTasaCambioAsync("USD", FechaRequest, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(CrearSbsDto(compra: "3.7100", venta: "3.7200"));
 
         var existente = TasaCambioEntity.Crear("USD", FechaSbs, 3.71m, 3.72m, "WORKER", "SBS");
+        existente.MarcarSincronizadoSyteline(true); // ya estaba sincronizado → true→true no genera write
         _repoMock.Setup(r => r.ObtenerPorFechaAsync("USD", FechaSbs, It.IsAny<CancellationToken>()))
                  .ReturnsAsync(existente);
 
@@ -146,9 +147,9 @@ public class SincronizarDesdeSbsHandlerTests
         result.Message.Should().Contain("ya estaba actualizada");
 
         _repoMock.Verify(r => r.ActualizarAsync(It.IsAny<TasaCambioEntity>(), It.IsAny<CancellationToken>()), Times.Never,
-            "no debe actualizar si los valores no cambiaron");
+            "no debe actualizar la BD si los valores no cambiaron y el sync ya estaba en el mismo estado");
         _uowMock.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Never,
-            "no debe persistir si no hubo cambio");
+            "no debe persistir si no hubo cambio en valores ni en estado de sincronización");
     }
 
     // ── CA-4: ya existe con valores distintos → actualiza BD ─────────────────
@@ -175,9 +176,9 @@ public class SincronizarDesdeSbsHandlerTests
         result.Success.Should().BeTrue();
         result.Message.Should().Contain("actualizada");
 
-        _repoMock.Verify(r => r.ActualizarAsync(It.IsAny<TasaCambioEntity>(), It.IsAny<CancellationToken>()), Times.Once,
-            "debe actualizar la entidad en BD con los nuevos valores");
-        _uowMock.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _repoMock.Verify(r => r.ActualizarAsync(It.IsAny<TasaCambioEntity>(), It.IsAny<CancellationToken>()), Times.Exactly(2),
+            "debe actualizar la BD dos veces: los nuevos valores y luego el estado de sincronización con SyteLine");
+        _uowMock.Verify(u => u.GuardarCambiosAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
 
         existente.ValorCompra.Should().Be(3.71m, "ActualizarValores debe haber actualizado la compra");
         existente.ValorVenta.Should().Be(3.72m,  "ActualizarValores debe haber actualizado la venta");

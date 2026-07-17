@@ -171,4 +171,44 @@ public class TasaCambioEntidadTests
 
         tasa.FechaSbs.Should().Be(fechaSbs);
     }
+
+    // ── MarcarSincronizadoSyteline ────────────────────────────────────────────
+
+    [Fact]
+    public void MarcarSincronizadoSyteline_ConExito_MarcaFlagYRegistraFecha()
+    {
+        var tasa = TasaCambioEntity.Crear("USD", Fecha, Compra, Venta, Usuario);
+        tasa.SincronizadoSyteline.Should().BeFalse("estado inicial es no sincronizado");
+
+        tasa.MarcarSincronizadoSyteline(true);
+
+        tasa.SincronizadoSyteline.Should().BeTrue();
+        tasa.FechaUltSincSyteline.Should().NotBeNull("debe registrar cuándo fue el último éxito");
+    }
+
+    [Fact]
+    public void MarcarSincronizadoSyteline_ConFallo_MarcaFlagFalsoYPreservaFechaUltimoExito()
+    {
+        var tasa = TasaCambioEntity.Crear("USD", Fecha, Compra, Venta, Usuario);
+        tasa.MarcarSincronizadoSyteline(true);  // simula un éxito previo
+        var fechaExitoPrevio = tasa.FechaUltSincSyteline;
+
+        tasa.MarcarSincronizadoSyteline(false); // luego falla
+
+        tasa.SincronizadoSyteline.Should().BeFalse();
+        tasa.FechaUltSincSyteline.Should().Be(fechaExitoPrevio,
+            "un fallo no debe borrar la fecha del último éxito — sirve para el log de diagnóstico");
+    }
+
+    [Fact]
+    public void ActualizarValores_ResetaEstadoSync_ParaNuevosValoresNoSincronizados()
+    {
+        var tasa = TasaCambioEntity.Crear("USD", Fecha, Compra, Venta, Usuario);
+        tasa.MarcarSincronizadoSyteline(true); // estado: sincronizado
+
+        tasa.ActualizarValores(3.75m, 3.76m, Usuario); // nuevos valores
+
+        tasa.SincronizadoSyteline.Should().BeFalse(
+            "ActualizarValores debe resetear el flag porque los nuevos valores aún no están en SyteLine");
+    }
 }

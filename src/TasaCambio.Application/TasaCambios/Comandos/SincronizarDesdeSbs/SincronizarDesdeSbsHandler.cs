@@ -50,15 +50,15 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
         // 2. Guardar en BD interna (contingencia)
         var tasaExistente = await _uow.TasaCambios.ObtenerPorFechaAsync(request.CodigoMoneda, fechaSbs, ct);
 
-        TasaCambioDto tasaDto;
+        Domain.Entidades.TasaCambio entidad;
         string mensajeDb;
 
         if (tasaExistente is not null)
         {
             if (tasaExistente.ValorCompra == valorCompra && tasaExistente.ValorVenta == valorVenta)
             {
-                tasaDto    = tasaExistente.Adapt<TasaCambioDto>();
-                mensajeDb  = "La tasa de cambio ya estaba actualizada en la BD interna.";
+                entidad   = tasaExistente;
+                mensajeDb = "La tasa de cambio ya estaba actualizada en la BD interna.";
             }
             else
             {
@@ -68,7 +68,7 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
                 await _auditoria.RegistrarAsync("ACTUALIZAR_SBS", nameof(Domain.Entidades.TasaCambio),
                     new { tasaExistente.CodigoMoneda, tasaExistente.Fecha }, ct);
 
-                tasaDto   = tasaExistente.Adapt<TasaCambioDto>();
+                entidad   = tasaExistente;
                 mensajeDb = "Tasa actualizada en BD interna.";
             }
         }
@@ -82,22 +82,44 @@ internal sealed class SincronizarDesdeSbsHandler : IRequestHandler<SincronizarDe
             await _auditoria.RegistrarAsync("SINCRONIZAR_SBS", nameof(Domain.Entidades.TasaCambio),
                 new { tasa.CodigoMoneda, tasa.Fecha }, ct);
 
-            tasaDto   = tasa.Adapt<TasaCambioDto>();
+            entidad   = tasa;
             mensajeDb = "Tasa registrada en BD interna.";
         }
 
+        var tasaDto = entidad.Adapt<TasaCambioDto>();
+
         // 3. Registrar en SyteLine (mejor esfuerzo — no falla la operación si SyteLine no responde)
+        bool sincronizado = false;
+        bool estadoSyncPrevio = entidad.SincronizadoSyteline;
         try
         {
-            var sincronizado = await _servicioSyteline.RegistrarTasaCambioAsync(
+            sincronizado = await _servicioSyteline.RegistrarTasaCambioAsync(
                 request.CodigoMoneda, fechaSbs, valorCompra, valorVenta, usuario, ct);
 
             if (!sincronizado)
-                _logger.LogWarning("[SYTELINE] No se pudo registrar {Moneda}/{Fecha} en SyteLine.", request.CodigoMoneda, request.Fecha);
+                _logger.LogWarning(
+                    "[SYTELINE] No se pudo registrar {Moneda}/{Fecha}. Último éxito: {UltimoExito}.",
+                    request.CodigoMoneda, fechaSbs,
+                    entidad.FechaUltSincSyteline.HasValue
+                        ? entidad.FechaUltSincSyteline.Value.ToString("dd/MM/yyyy HH:mm") + " UTC"
+                        : "nunca");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[SYTELINE] Error al intentar registrar {Moneda}/{Fecha} en SyteLine.", request.CodigoMoneda, request.Fecha);
+            _logger.LogError(ex,
+                "[SYTELINE] Error al registrar {Moneda}/{Fecha}. Último éxito: {UltimoExito}.",
+                request.CodigoMoneda, fechaSbs,
+                entidad.FechaUltSincSyteline.HasValue
+                    ? entidad.FechaUltSincSyteline.Value.ToString("dd/MM/yyyy HH:mm") + " UTC"
+                    : "nunca");
+        }
+
+        // Persiste el cambio de estado de sincronización solo cuando varía (evita escrituras innecesarias)
+        entidad.MarcarSincronizadoSyteline(sincronizado);
+        if (entidad.SincronizadoSyteline != estadoSyncPrevio)
+        {
+            await _uow.TasaCambios.ActualizarAsync(entidad, ct);
+            await _uow.GuardarCambiosAsync(ct);
         }
 
         return ResponseDto<TasaCambioDto>.Ok(tasaDto, mensajeDb);

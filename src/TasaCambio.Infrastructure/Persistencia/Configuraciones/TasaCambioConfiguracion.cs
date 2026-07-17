@@ -18,6 +18,8 @@ internal sealed class TasaCambioConfiguracion : IEntityTypeConfiguration<Domain.
         builder.Property(x => x.ValorVenta).HasColumnName("ValorVenta").HasPrecision(18, 6).IsRequired();
         builder.Property(x => x.FechaSbs).HasColumnName("FechaSbs");
         builder.Property(x => x.FuenteOrigen).HasColumnName("FuenteOrigen").HasMaxLength(50);
+        builder.Property(x => x.SincronizadoSyteline).HasColumnName("SincronizadoSyteline").HasDefaultValue(false).IsRequired();
+        builder.Property(x => x.FechaUltSincSyteline).HasColumnName("FechaUltSincSyteline");
 
         builder.Property(x => x.UsuarioReg).HasColumnName("UsuarioReg").HasMaxLength(50).IsRequired();
         builder.Property(x => x.FechaReg).HasColumnName("FechaReg").IsRequired();
