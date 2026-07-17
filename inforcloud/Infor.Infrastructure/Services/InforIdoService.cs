@@ -90,7 +90,7 @@ internal sealed class InforIdoService : IInforIdoService
 
     private void AgregarHeadersInfor(HttpRequestMessage request)
     {
-        request.Headers.Add("X-Infor-MongooseConfig", _settings.AppId);
+        request.Headers.Add("X-Infor-MongooseConfig", _settings.MongooseConfig);
     }
 
     private async Task<IdoResponse> LeerRespuestaAsync(HttpResponseMessage response, CancellationToken ct)

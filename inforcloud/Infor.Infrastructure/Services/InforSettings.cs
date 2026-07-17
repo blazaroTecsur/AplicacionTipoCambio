@@ -14,5 +14,6 @@ public sealed class InforSettings
     public string IdoBaseUrl =>
         $"{BaseUrl.TrimEnd('/')}/{Tenant}/{AppId}/IDORequestService/ido/";
     public string AppId                { get; init; } = string.Empty;
+    public string MongooseConfig       { get; init; } = string.Empty;
     public string MonedaBase           { get; init; } = "PEN";
 }

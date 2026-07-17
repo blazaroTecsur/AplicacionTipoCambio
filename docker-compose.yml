@@ -41,13 +41,14 @@ services:
       - Sbs__UrlHtml=https://www.sbs.gob.pe/app/pp/SISTIP_PORTAL/Paginas/Publicacion/TipoCambioPromedio.aspx
       - Sbs__HoraInicioRegistro=21
       - ApiSettings__Infor__SsoBaseUrl=${INFOR_SSO_URL}
-      - ApiSettings__Infor__IdoBaseUrl=${INFOR_BASE_URL}
+      - ApiSettings__Infor__BaseUrl=${INFOR_BASE_URL}
       - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
       - ApiSettings__Infor__ClientSecret=${INFOR_CLIENT_SECRET}
       - ApiSettings__Infor__ServiceAccountKey=${INFOR_SERVICE_ACCOUNT_KEY}
       - ApiSettings__Infor__ServiceAccountSecret=${INFOR_SERVICE_ACCOUNT_SECRET}
       - ApiSettings__Infor__AppId=${INFOR_APP_ID}
-      - ApiSettings__Infor__AppId=${INOFR_TENANT}
+      - ApiSettings__Infor__Tenant=${INFOR_TENANT}
+      - ApiSettings__Infor__MongooseConfig=${INFOR_MONGOOSE}
       - ApiSettings__Infor__MonedaBase=PEN
       - Sbs__HoraFinRegistro=6
       - Sbs__IntervaloBusquedaMinutos=30
