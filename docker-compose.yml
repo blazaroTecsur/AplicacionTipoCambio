@@ -7,11 +7,14 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - Sbs__UrlXml=https://www.sbs.gob.pe/app/xmltipocambio/TC_TI_Portal_xml.xml
-      - Sbs__UrlHtml=https://www.sbs.gob.pe/app/pp/SISTIP_PORTAL/Paginas/Publicacion/TipoCambioPromedio.aspx
-      - Sbs__HoraInicioRegistro=21
-      - Sbs__HoraFinRegistro=6
-      - Sbs__IntervaloBusquedaMinutos=30
+      - Sbs__UrlXml=${URL_XML}
+      - Sbs__UrlHtml=${URL_HTML}
+      - Sbs__HoraInicioRegistro=${HORA_INICIO_REGISTRO}
+      - Sbs__HoraFinRegistro=${HORA_FIN_REGISTRO}
+      - Sbs__IntervaloBusquedaMinutos=${INTERVALO_BUSQUEDA_MINUTOS}
+      - Sbs__ValidacionPartesEnteras=${VALIDACION_PARTES_ENTERAS}
+      - Sbs__ValidacionPartesDecimales=${VALIDACION_PARTES_DECIMALES}
+      - Sbs__Monedas=${MONEDAS}
       - ApiSettings__Infor__SsoBaseUrl=${INFOR_SSO_URL}
       - ApiSettings__Infor__BaseUrl=${INFOR_BASE_URL}
       - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
