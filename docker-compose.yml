@@ -1,34 +1,4 @@
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: tasacambio-nginx
-    ports:
-      - "${NGINX_PORT:-80}:80"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - api
-    restart: unless-stopped
-
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: tasacambio-api
-    expose:
-      - "8080"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - Seguridad__ApiKey=${API_KEY}
-      - Serilog__SeqUrl=http://seq:5341
-    depends_on:
-      db:
-        condition: service_healthy
-      seq:
-        condition: service_started
-    restart: unless-stopped
-
   worker:
     build:
       context: .
@@ -40,6 +10,8 @@ services:
       - Sbs__UrlXml=https://www.sbs.gob.pe/app/xmltipocambio/TC_TI_Portal_xml.xml
       - Sbs__UrlHtml=https://www.sbs.gob.pe/app/pp/SISTIP_PORTAL/Paginas/Publicacion/TipoCambioPromedio.aspx
       - Sbs__HoraInicioRegistro=21
+      - Sbs__HoraFinRegistro=6
+      - Sbs__IntervaloBusquedaMinutos=30
       - ApiSettings__Infor__SsoBaseUrl=${INFOR_SSO_URL}
       - ApiSettings__Infor__BaseUrl=${INFOR_BASE_URL}
       - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
@@ -50,8 +22,6 @@ services:
       - ApiSettings__Infor__Tenant=${INFOR_TENANT}
       - ApiSettings__Infor__MongooseConfig=${INFOR_MONGOOSE}
       - ApiSettings__Infor__MonedaBase=PEN
-      - Sbs__HoraFinRegistro=6
-      - Sbs__IntervaloBusquedaMinutos=30
       - Serilog__SeqUrl=http://seq:5341
     depends_on:
       db:
