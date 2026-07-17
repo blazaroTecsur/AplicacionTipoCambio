@@ -16,6 +16,7 @@ public sealed class IdoResponse
     [JsonPropertyName("moreRowsExist")]
     public bool MoreRowsExist { get; init; }
 
+    // Cada elemento es un objeto plano { "PropName": "value", ... }
     [JsonPropertyName("Items")]
-    public List<List<IdoItemsResponse>> Items { get; init; } = [];
+    public List<Dictionary<string, string?>> Items { get; init; } = [];
 }
