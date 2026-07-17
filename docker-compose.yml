@@ -7,6 +7,9 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - Sbs__HoraInicioRegistro=${SBS_HORA_INICIO:-21}
+      - Sbs__HoraFinRegistro=${SBS_HORA_FIN:-6}
+      - Sbs__IntervaloBusquedaMinutos=${SBS_INTERVALO_MINUTOS:-30}
       - ApiSettings__Infor__SsoBaseUrl=${INFOR_SSO_URL}
       - ApiSettings__Infor__TokenEndpoint=${INFOR_TOKEN_ENDPOINT}
       - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
