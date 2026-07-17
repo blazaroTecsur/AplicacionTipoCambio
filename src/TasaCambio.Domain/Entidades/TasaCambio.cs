@@ -11,6 +11,8 @@ public sealed class TasaCambio : EntidadBase
     public decimal TasaPromedio => (ValorCompra + ValorVenta) / 2;
     public DateOnly? FechaSbs { get; private set; }
     public string? FuenteOrigen { get; private set; }
+    public bool SincronizadoSyteline { get; private set; }
+    public DateTime? FechaUltSincSyteline { get; private set; }
 
     private TasaCambio() { }
 
@@ -43,6 +45,14 @@ public sealed class TasaCambio : EntidadBase
         if (fuenteOrigen is not null) FuenteOrigen = fuenteOrigen;
         UsuarioAct = usuario;
         FechaAct = DateTime.UtcNow;
+        SincronizadoSyteline = false; // los nuevos valores aún no han sido sincronizados
+    }
+
+    public void MarcarSincronizadoSyteline(bool exito)
+    {
+        SincronizadoSyteline = exito;
+        if (exito) FechaUltSincSyteline = DateTime.UtcNow;
+        // si falla, preservamos FechaUltSincSyteline para saber cuándo fue el último éxito
     }
 
     public void AsignarFechaSbs(DateOnly fechaSbs) => FechaSbs = fechaSbs;
