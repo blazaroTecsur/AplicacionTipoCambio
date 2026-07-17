@@ -71,9 +71,8 @@ internal sealed class ServicioSyteline : IServicioSyteline
         if (result.Items.Count == 0)
             return null;
 
-        return result.Items[0]
-            .FirstOrDefault(p => p.Name == "_ItemId")
-            ?.Value;
+        result.Items[0].TryGetValue("_ItemId", out var itemId);
+        return itemId;
     }
 
     private static IEnumerable<IdoProperty> BuildPropiedades(
