@@ -12,6 +12,12 @@ public sealed class SbsWorkerConfig
     public bool EstaEnVentanaActualizacion()
     {
         var horaActual = DateTime.Now.Hour;
-        return horaActual >= HoraInicioRegistro || horaActual <= HoraFinRegistro;
+
+        // Ventana nocturna (cruza medianoche): ej. 21-6 → hora >= 21 OR hora <= 6
+        if (HoraInicioRegistro > HoraFinRegistro)
+            return horaActual >= HoraInicioRegistro || horaActual <= HoraFinRegistro;
+
+        // Ventana diurna (mismo día): ej. 8-9 → hora >= 8 AND hora <= 9
+        return horaActual >= HoraInicioRegistro && horaActual <= HoraFinRegistro;
     }
 }
