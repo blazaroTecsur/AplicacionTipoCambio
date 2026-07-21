@@ -25,7 +25,6 @@ services:
       - ApiSettings__Infor__ServiceAccountSecret=${INFOR_SERVICE_ACCOUNT_SECRET}
       - ApiSettings__Infor__AppId=${INFOR_APP_ID}
       - ApiSettings__Infor__Configuration=${INFOR_MONGOOSE}
-      - ApiSettings__Infor__MonedaBase=PEN
       - Serilog__SeqUrl=http://seq:5341
     depends_on:
       db:
