@@ -64,7 +64,7 @@ internal sealed class ServicioSyteline : IServicioSyteline
 
         var result = await _idoService.LoadAsync(
             IDO,
-            properties: "_ItemId",
+            props: "_ItemId",
             filter:     filter,
             recordCap:  1,
             orderBy:    "EffDate DESC",
