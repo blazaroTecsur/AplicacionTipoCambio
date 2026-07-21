@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.Worker
+      args:
+        GITHUB_USER: ${GITHUB_USER}
+        NUGET_TECSUR_TOKEN: ${NUGET_TECSUR_TOKEN}
     container_name: tasacambio-worker
     environment:
       - DOTNET_ENVIRONMENT=Production
