@@ -30,7 +30,7 @@
     <ProjectReference Include="..\..\src\TasaCambio.Application\TasaCambio.Application.csproj" />
     <ProjectReference Include="..\..\src\TasaCambio.Domain\TasaCambio.Domain.csproj" />
     <ProjectReference Include="..\..\src\TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\inforcloud\Infor.Abstractions\Infor.Abstractions.csproj" />
+    <PackageReference Include="Infor.Abstractions" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
