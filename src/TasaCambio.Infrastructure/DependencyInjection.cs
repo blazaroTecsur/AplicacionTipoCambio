@@ -43,6 +43,7 @@ public static class DependencyInjection
         services.AddScoped<IServicioSbs, ServicioSbs>();
 
         // ── Infor SyteLine IDO ────────────────────────────────────────────────
+        services.AddHttpContextAccessor();
         services.AddInfor(config);
         services.AddScoped<IServicioSyteline, ServicioSyteline>();
 
