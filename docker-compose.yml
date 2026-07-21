@@ -29,6 +29,7 @@ services:
       - ApiSettings__Infor__AppId=${INFOR_APP_ID}
       - ApiSettings__Infor__Configuration=${INFOR_MONGOOSE}
       - Serilog__SeqUrl=http://seq:5341
+      - TZ=America/Lima
     depends_on:
       db:
         condition: service_healthy
