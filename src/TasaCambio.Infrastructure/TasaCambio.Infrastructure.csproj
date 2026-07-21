@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TasaCambio.Application\TasaCambio.Application.csproj" />
-    <ProjectReference Include="..\..\inforcloud\Infor.Infrastructure\Infor.Infrastructure.csproj" />
+    <PackageReference Include="Infor.Infrastructure" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
