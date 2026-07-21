@@ -3,6 +3,7 @@ using Infor.Abstractions.Interfaces;
 using Infor.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 using TasaCambio.Application.Comun.Interfaces;
 
 namespace TasaCambio.Infrastructure.Servicios;
@@ -10,18 +11,16 @@ namespace TasaCambio.Infrastructure.Servicios;
 internal sealed class ServicioSyteline : IServicioSyteline
 {
     private readonly IInforIdoService _idoService;
-    private readonly InforSettings    _settings;
     private readonly ILogger<ServicioSyteline> _logger;
 
-    private const string IDO = "SLCurrates";
+    private const string IDO        = "SLCurrates";
+    private const string MonedaBase = "PEN";
 
     public ServicioSyteline(
         IInforIdoService idoService,
-        IOptions<InforSettings> settings,
         ILogger<ServicioSyteline> logger)
     {
         _idoService = idoService;
-        _settings   = settings.Value;
         _logger     = logger;
     }
 
@@ -31,16 +30,20 @@ internal sealed class ServicioSyteline : IServicioSyteline
     {
         try
         {
-            // Formato ISO que acepta el filtro IDO (igual al ejemplo del usuario)
-            var fechaIdo = fecha.ToString("yyyy-MM-dd");
-            var itemId   = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
-
-            var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, _settings.MonedaBase, incluirClave: itemId is null);
+            var fechaIdo    = fecha.ToString("yyyy-MM-dd");
+            var itemId      = await BuscarItemIdAsync(codigoMoneda, fechaIdo, ct);
+            var propiedades = BuildPropiedades(codigoMoneda, fechaIdo, compra, venta, usuario, incluirClave: itemId is null);
 
             if (itemId is null)
+            {
                 await _idoService.InsertItemAsync(IDO, propiedades, ct: ct);
+            }
             else
-                await _idoService.UpdateItemAsync(IDO, itemId, propiedades, ct: ct);
+            {
+                var payload = new IdoUpdatePayload(IDO,
+                    [new IdoUpdateChange(Action: 2, ItemId: itemId, RefreshAfterSave: false, Properties: propiedades)]);
+                await _idoService.UpdateItemAsync(IDO, payload, ct);
+            }
 
             _logger.LogInformation(
                 "[SYTELINE-IDO] {Accion} {Moneda} — Compra: {Compra} / Venta: {Venta} / Fecha: {Fecha}",
@@ -57,8 +60,7 @@ internal sealed class ServicioSyteline : IServicioSyteline
 
     private async Task<string?> BuscarItemIdAsync(string codigoMoneda, string fechaIdo, CancellationToken ct)
     {
-        // ToCurrCode = PEN (siempre), FromCurrCode = USD/EUR
-        var filter = $"ToCurrCode='{_settings.MonedaBase}' AND FromCurrCode='{codigoMoneda}' AND EffDate='{fechaIdo}'";
+        var filter = $"ToCurrCode='{MonedaBase}' AND FromCurrCode='{codigoMoneda}' AND EffDate='{fechaIdo}'";
 
         var result = await _idoService.LoadAsync(
             IDO,
@@ -68,23 +70,23 @@ internal sealed class ServicioSyteline : IServicioSyteline
             orderBy:    "EffDate DESC",
             ct:         ct);
 
-        if (result.Items.Count == 0)
+        if (!result.TryGetProperty("Items", out var items) || items.GetArrayLength() == 0)
             return null;
 
-        result.Items[0].TryGetValue("_ItemId", out var itemId);
-        return itemId;
+        var first = items[0];
+        return first.TryGetProperty("_ItemId", out var itemIdProp) ? itemIdProp.GetString() : null;
     }
 
-    private static IEnumerable<IdoProperty> BuildPropiedades(
+    private static List<IdoProperty> BuildPropiedades(
         string codigoMoneda, string fechaIdo, decimal compra, decimal venta,
-        string usuario, string monedaBase, bool incluirClave)
+        string usuario, bool incluirClave)
     {
         var props = new List<IdoProperty>();
 
         if (incluirClave)
         {
-            props.Add(new IdoProperty { Name = "ToCurrCode",   Value = monedaBase   }); // PEN
-            props.Add(new IdoProperty { Name = "FromCurrCode", Value = codigoMoneda }); // USD / EUR
+            props.Add(new IdoProperty { Name = "ToCurrCode",   Value = MonedaBase   });
+            props.Add(new IdoProperty { Name = "FromCurrCode", Value = codigoMoneda });
             props.Add(new IdoProperty { Name = "EffDate",      Value = fechaIdo     });
         }
 
@@ -95,3 +97,6 @@ internal sealed class ServicioSyteline : IServicioSyteline
         return props;
     }
 }
+
+internal sealed record IdoUpdatePayload(string IDOName, IdoUpdateChange[] Changes);
+internal sealed record IdoUpdateChange(int Action, string? ItemId, bool RefreshAfterSave, List<IdoProperty> Properties);

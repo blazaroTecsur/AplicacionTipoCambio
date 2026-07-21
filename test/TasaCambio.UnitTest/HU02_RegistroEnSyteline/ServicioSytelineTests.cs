@@ -2,6 +2,7 @@ using Infor.Abstractions.DTOs;
 using Infor.Abstractions.Interfaces;
 using Infor.Infrastructure.Services;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 using TasaCambio.Infrastructure.Servicios;
 
 namespace TasaCambio.UnitTest.HU02_RegistroEnSyteline;
@@ -23,42 +24,40 @@ public class ServicioSytelineTests
     private const string               Usuario  = "WORKER";
     private const string               ItemIdFicticio = "PBT=AAABXg==";
 
-    private ServicioSyteline CrearServicio(string monedaBase = "PEN")
-    {
-        var settings = Options.Create(new InforSettings
-        {
-            MonedaBase = monedaBase,
-            AppId      = "TEST_CONFIG",
-        });
-        return new ServicioSyteline(_idoMock.Object, settings, NullLogger<ServicioSyteline>.Instance);
-    }
+    private ServicioSyteline CrearServicio() =>
+        new(_idoMock.Object, NullLogger<ServicioSyteline>.Instance);
+
+    // ── Helpers JSON ──────────────────────────────────────────────────────────
+    private static JsonElement JsonVacio() =>
+        JsonDocument.Parse("{\"Items\":[]}").RootElement;
+
+    private static JsonElement JsonConItem(string itemId) =>
+        JsonDocument.Parse($"{{\"Items\":[{{\"_ItemId\":\"{itemId}\"}}]}}").RootElement;
+
+    private static JsonElement JsonOk() =>
+        JsonDocument.Parse("{}").RootElement;
 
     // ── CA-1: no existe en IDO → llama InsertItemAsync ───────────────────────
 
     [Fact]
     public async Task RegistrarTasaCambio_CuandoNoExisteEnIdo_EjecutaInsert()
     {
-        // Arrange — LoadAsync retorna lista vacía (no existe el registro)
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse { Success = true, Items = [] });
+                .ReturnsAsync(JsonVacio());
 
         _idoMock.Setup(i => i.InsertItemAsync("SLCurrates", It.IsAny<IEnumerable<IdoProperty>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse { Success = true });
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        var ok = await CrearServicio().RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
 
-        // Act
-        var ok = await svc.RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
-
-        // Assert
         ok.Should().BeTrue();
         _idoMock.Verify(i => i.InsertItemAsync("SLCurrates", It.IsAny<IEnumerable<IdoProperty>>(),
             It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once,
             "debe llamar InsertItemAsync cuando no existe el registro en SLCurrates");
-        _idoMock.Verify(i => i.UpdateItemAsync(It.IsAny<string>(), It.IsAny<string>(),
-            It.IsAny<IEnumerable<IdoProperty>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never,
+        _idoMock.Verify(i => i.UpdateItemAsync(It.IsAny<string>(), It.IsAny<object>(),
+            It.IsAny<CancellationToken>()), Times.Never,
             "no debe llamar UpdateItemAsync cuando es una inserción");
     }
 
@@ -67,31 +66,24 @@ public class ServicioSytelineTests
     [Fact]
     public async Task RegistrarTasaCambio_CuandoExisteEnIdo_EjecutaUpdateConItemId()
     {
-        // Arrange — LoadAsync devuelve un item con _ItemId
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse
-                {
-                    Success = true,
-                    Items   = [new Dictionary<string, string?> { { "_ItemId", ItemIdFicticio } }]
-                });
+                .ReturnsAsync(JsonConItem(ItemIdFicticio));
 
         string? itemIdCapturado = null;
-        _idoMock.Setup(i => i.UpdateItemAsync("SLCurrates", It.IsAny<string>(),
-                    It.IsAny<IEnumerable<IdoProperty>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, IEnumerable<IdoProperty>, bool, CancellationToken>(
-                    (_, itemId, _, _, _) => itemIdCapturado = itemId)
-                .ReturnsAsync(new IdoResponse { Success = true });
+        _idoMock.Setup(i => i.UpdateItemAsync("SLCurrates", It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((_, payload, _) =>
+                {
+                    var update = (IdoUpdatePayload)payload;
+                    itemIdCapturado = update.Changes[0].ItemId;
+                })
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        var ok = await CrearServicio().RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
 
-        // Act
-        var ok = await svc.RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
-
-        // Assert
         ok.Should().BeTrue();
-        _idoMock.Verify(i => i.UpdateItemAsync("SLCurrates", It.IsAny<string>(),
-            It.IsAny<IEnumerable<IdoProperty>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Once);
+        _idoMock.Verify(i => i.UpdateItemAsync("SLCurrates", It.IsAny<object>(),
+            It.IsAny<CancellationToken>()), Times.Once);
         _idoMock.Verify(i => i.InsertItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<IdoProperty>>(),
             It.IsAny<bool>(), It.IsAny<CancellationToken>()), Times.Never);
 
@@ -103,24 +95,19 @@ public class ServicioSytelineTests
     [Fact]
     public async Task RegistrarTasaCambio_EnInsert_InclueyeTodesLosCamposRequeridos()
     {
-        // Arrange
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse { Success = true, Items = [] });
+                .ReturnsAsync(JsonVacio());
 
         List<IdoProperty>? propsCapturadas = null;
         _idoMock.Setup(i => i.InsertItemAsync("SLCurrates", It.IsAny<IEnumerable<IdoProperty>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Callback<string, IEnumerable<IdoProperty>, bool, CancellationToken>(
                     (_, props, _, _) => propsCapturadas = props.ToList())
-                .ReturnsAsync(new IdoResponse { Success = true });
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        await CrearServicio().RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
 
-        // Act
-        await svc.RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
-
-        // Assert — todos los campos del IDO SLCurrates según HU-02
         propsCapturadas.Should().NotBeNull();
         propsCapturadas.Should().Contain(p => p.Name == "ToCurrCode"   && p.Value == "PEN",
             "ToCurrCode siempre es PEN (moneda destino)");
@@ -141,28 +128,21 @@ public class ServicioSytelineTests
     [Fact]
     public async Task RegistrarTasaCambio_EnUpdate_NoInclueyeCamposClave()
     {
-        // Arrange
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse
-                {
-                    Success = true,
-                    Items   = [new Dictionary<string, string?> { { "_ItemId", ItemIdFicticio } }]
-                });
+                .ReturnsAsync(JsonConItem(ItemIdFicticio));
 
         List<IdoProperty>? propsCapturadas = null;
-        _idoMock.Setup(i => i.UpdateItemAsync("SLCurrates", It.IsAny<string>(),
-                    It.IsAny<IEnumerable<IdoProperty>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .Callback<string, string, IEnumerable<IdoProperty>, bool, CancellationToken>(
-                    (_, _, props, _, _) => propsCapturadas = props.ToList())
-                .ReturnsAsync(new IdoResponse { Success = true });
+        _idoMock.Setup(i => i.UpdateItemAsync("SLCurrates", It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback<string, object, CancellationToken>((_, payload, _) =>
+                {
+                    var update = (IdoUpdatePayload)payload;
+                    propsCapturadas = update.Changes[0].Properties;
+                })
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        await CrearServicio().RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
 
-        // Act
-        await svc.RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
-
-        // Assert — solo se actualizan los valores, no se modifican los campos PK
         propsCapturadas.Should().NotBeNull();
         propsCapturadas.Should().NotContain(p => p.Name == "ToCurrCode",
             "el Update no debe sobrescribir la clave ToCurrCode");
@@ -186,26 +166,21 @@ public class ServicioSytelineTests
     [InlineData(2025, 4,  1,  "2025-04-01")]
     public async Task RegistrarTasaCambio_EffDateFormateadaComoIso8601(int anio, int mes, int dia, string esperado)
     {
-        // Arrange
         var fecha = new DateOnly(anio, mes, dia);
 
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse { Success = true, Items = [] });
+                .ReturnsAsync(JsonVacio());
 
         List<IdoProperty>? propsCapturadas = null;
         _idoMock.Setup(i => i.InsertItemAsync("SLCurrates", It.IsAny<IEnumerable<IdoProperty>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Callback<string, IEnumerable<IdoProperty>, bool, CancellationToken>(
                     (_, props, _, _) => propsCapturadas = props.ToList())
-                .ReturnsAsync(new IdoResponse { Success = true });
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        await CrearServicio().RegistrarTasaCambioAsync(Moneda, fecha, Compra, Venta, Usuario);
 
-        // Act
-        await svc.RegistrarTasaCambioAsync(Moneda, fecha, Compra, Venta, Usuario);
-
-        // Assert
         propsCapturadas.Should().Contain(p => p.Name == "EffDate" && p.Value == esperado,
             $"EffDate debe ser '{esperado}' para fecha {fecha:yyyy-MM-dd}");
     }
@@ -221,24 +196,19 @@ public class ServicioSytelineTests
     {
         var valor = (decimal)valorDouble;
 
-        // Arrange
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse { Success = true, Items = [] });
+                .ReturnsAsync(JsonVacio());
 
         List<IdoProperty>? propsCapturadas = null;
         _idoMock.Setup(i => i.InsertItemAsync("SLCurrates", It.IsAny<IEnumerable<IdoProperty>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .Callback<string, IEnumerable<IdoProperty>, bool, CancellationToken>(
                     (_, props, _, _) => propsCapturadas = props.ToList())
-                .ReturnsAsync(new IdoResponse { Success = true });
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        await CrearServicio().RegistrarTasaCambioAsync(Moneda, Fecha, valor, valor + 0.01m, Usuario);
 
-        // Act
-        await svc.RegistrarTasaCambioAsync(Moneda, Fecha, valor, valor + 0.01m, Usuario);
-
-        // Assert
         propsCapturadas.Should().Contain(p => p.Name == "BuyRate" && p.Value == esperado,
             $"BuyRate debe ser '{esperado}' para valor {valor}");
     }
@@ -250,24 +220,19 @@ public class ServicioSytelineTests
     [InlineData("EUR")]
     public async Task RegistrarTasaCambio_FiltroLoadAx_UsaToCurrCodePenYFromCurrCodeCorrecto(string moneda)
     {
-        // Arrange
         string? filtroCapturado = null;
         _idoMock.Setup(i => i.LoadAsync("SLCurrates", "_ItemId",
                     It.IsAny<string>(), 1, "EffDate DESC", It.IsAny<CancellationToken>()))
                 .Callback<string, string?, string?, int, string?, CancellationToken>(
                     (_, _, f, _, _, _) => filtroCapturado = f)
-                .ReturnsAsync(new IdoResponse { Success = true, Items = [] });
+                .ReturnsAsync(JsonVacio());
 
         _idoMock.Setup(i => i.InsertItemAsync(It.IsAny<string>(), It.IsAny<IEnumerable<IdoProperty>>(),
                     It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new IdoResponse { Success = true });
+                .ReturnsAsync(JsonOk());
 
-        var svc = CrearServicio();
+        await CrearServicio().RegistrarTasaCambioAsync(moneda, Fecha, Compra, Venta, Usuario);
 
-        // Act
-        await svc.RegistrarTasaCambioAsync(moneda, Fecha, Compra, Venta, Usuario);
-
-        // Assert
         filtroCapturado.Should().NotBeNull();
         filtroCapturado.Should().Contain("ToCurrCode='PEN'",
             "ToCurrCode siempre es PEN (moneda nacional destino)");
@@ -282,17 +247,12 @@ public class ServicioSytelineTests
     [Fact]
     public async Task RegistrarTasaCambio_CuandoIdoLanzaExcepcion_RetornaFalseSinPropagarError()
     {
-        // Arrange — simula fallo de conectividad con SyteLine
         _idoMock.Setup(i => i.LoadAsync(It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>(),
                     It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new HttpRequestException("No se pudo conectar con SyteLine"));
 
-        var svc = CrearServicio();
+        var ok = await CrearServicio().RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
 
-        // Act
-        var ok = await svc.RegistrarTasaCambioAsync(Moneda, Fecha, Compra, Venta, Usuario);
-
-        // Assert
         ok.Should().BeFalse("un fallo en el IDO debe retornar false, no propagar la excepción");
     }
 }
