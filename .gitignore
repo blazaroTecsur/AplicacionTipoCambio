@@ -17,7 +17,7 @@ appsettings.*.local.json
 .claude/
 
 ## Carpetas locales de desarrollo
-.docs/
+docs/
 inforcloud/
 
 ## Logs
