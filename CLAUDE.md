@@ -26,12 +26,6 @@ docker compose logs -f worker       # ver logs en tiempo real
 docker compose restart worker       # reiniciar solo el worker
 ```
 
-### Git
-```bash
-git pull backup claude/wonderful-maxwell-488ts8
-git push -u origin claude/wonderful-maxwell-488ts8
-```
-
 ## Variables de entorno requeridas (`.env`)
 ```env
 # Base de datos
