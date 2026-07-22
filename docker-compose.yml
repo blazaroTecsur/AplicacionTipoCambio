@@ -30,11 +30,14 @@ services:
       - ApiSettings__Infor__Configuration=${INFOR_MONGOOSE}
       - Serilog__SeqUrl=http://seq:5341
       - TZ=America/Lima
+      - Loggings__Path=/app/logs
     depends_on:
       db:
         condition: service_healthy
       seq:
         condition: service_started
+    volumes:
+      - ./logs:/app/logs
     restart: unless-stopped
 
   db:
