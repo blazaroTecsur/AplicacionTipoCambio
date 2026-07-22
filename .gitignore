@@ -16,6 +16,10 @@ appsettings.*.local.json
 ## Claude Code
 .claude/
 
+## Carpetas locales de desarrollo
+.docs/
+inforcloud/
+
 ## Logs
 logs/
 
