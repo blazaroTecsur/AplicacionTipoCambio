@@ -13,6 +13,9 @@ appsettings.*.local.json
 *.pfx
 *.pem
 
+## Claude Code
+.claude/
+
 ## Logs
 logs/
 
