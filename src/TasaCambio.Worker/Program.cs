@@ -11,11 +11,18 @@ try
 {
     var builder = Host.CreateApplicationBuilder(args);
 
+    var logsPath = builder.Configuration["Loggings:Path"] ?? "logs";
+
     builder.Services.AddSerilog((ctx, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.FromLogContext()
         .WriteTo.Console()
-        .WriteTo.Seq(builder.Configuration["Serilog:SeqUrl"] ?? "http://localhost:5341"));
+        .WriteTo.Seq(builder.Configuration["Serilog:SeqUrl"] ?? "http://localhost:5341")
+        .WriteTo.File(
+            path: Path.Combine(logsPath, "worker-.log"),
+            rollingInterval: RollingInterval.Day,
+            retainedFileCountLimit: 30,
+            outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}"));
 
     var sbsConfig = builder.Configuration.GetSection("Sbs").Get<SbsWorkerConfig>() ?? new SbsWorkerConfig();
     builder.Services.AddSingleton(sbsConfig);

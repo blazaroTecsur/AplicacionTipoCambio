@@ -13,5 +13,8 @@ appsettings.*.local.json
 *.pfx
 *.pem
 
+## Logs
+logs/
+
 ## Docker
 docker-compose.override.yml
