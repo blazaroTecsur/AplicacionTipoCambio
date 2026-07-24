@@ -4,30 +4,30 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        GITHUB_USER: ${GITHUB_USER}
-        NUGET_TECSUR_TOKEN: ${NUGET_TECSUR_TOKEN}
+        GITHUB_USER: ${GitHub__User}
+        NUGET_TECSUR_TOKEN: ${GitHub__NugetTecsurToken}
     container_name: tasacambio-worker
     environment:
       - DOTNET_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - Sbs__UrlXml=${URL_XML}
-      - Sbs__UrlHtml=${URL_HTML}
-      - Sbs__HoraInicioRegistro=${HORA_INICIO_REGISTRO}
-      - Sbs__HoraFinRegistro=${HORA_FIN_REGISTRO}
-      - Sbs__IntervaloBusquedaMinutos=${INTERVALO_BUSQUEDA_MINUTOS}
-      - Sbs__ValidacionPartesEnteras=${VALIDACION_PARTES_ENTERAS}
-      - Sbs__ValidacionPartesDecimales=${VALIDACION_PARTES_DECIMALES}
-      - Sbs__Monedas__0=${SBS_MONEDA_0:-USD}
-      - Sbs__Monedas__1=${SBS_MONEDA_1:-EUR}
-      - ApiSettings__Infor__BaseUrl=${INFOR_BASE_URL}
-      - ApiSettings__Infor__SsoBaseUrl=${INFOR_SSO_URL}
-      - ApiSettings__Infor__Tenant=${INFOR_TENANT}
-      - ApiSettings__Infor__ClientId=${INFOR_CLIENT_ID}
-      - ApiSettings__Infor__ClientSecret=${INFOR_CLIENT_SECRET}
-      - ApiSettings__Infor__ServiceAccountKey=${INFOR_SERVICE_ACCOUNT_KEY}
-      - ApiSettings__Infor__ServiceAccountSecret=${INFOR_SERVICE_ACCOUNT_SECRET}
-      - ApiSettings__Infor__AppId=${INFOR_APP_ID}
-      - ApiSettings__Infor__Configuration=${INFOR_MONGOOSE}
+      - Sbs__UrlXml=${Sbs__UrlXml}
+      - Sbs__UrlHtml=${Sbs__UrlHtml}
+      - Sbs__HoraInicioRegistro=${Sbs__HoraInicioRegistro}
+      - Sbs__HoraFinRegistro=${Sbs__HoraFinRegistro}
+      - Sbs__IntervaloBusquedaMinutos=${Sbs__IntervaloBusquedaMinutos}
+      - Sbs__ValidacionPartesEnteras=${Sbs__ValidacionPartesEnteras}
+      - Sbs__ValidacionPartesDecimales=${Sbs__ValidacionPartesDecimales}
+      - Sbs__Monedas__0=${Sbs__Moneda0:-USD}
+      - Sbs__Monedas__1=${Sbs__Monedas__1:-EUR}
+      - ApiSettings__Infor__BaseUrl=${Infor__BaseUrl}
+      - ApiSettings__Infor__SsoBaseUrl=${Infor__SsoBaseUrl}
+      - ApiSettings__Infor__Tenant=${Infor__Tenant}
+      - ApiSettings__Infor__ClientId=${Infor__ClientId}
+      - ApiSettings__Infor__ClientSecret=${Infor__ClientSecret}
+      - ApiSettings__Infor__ServiceAccountKey=${Infor__ServiceAccountKey}
+      - ApiSettings__Infor__ServiceAccountSecret=${Infor__ServiceAccountSecret}
+      - ApiSettings__Infor__AppId=${Infor__AppId}
+      - ApiSettings__Infor__Configuration=${Infor__Configuration}
       - Serilog__SeqUrl=http://seq:5341
       - TZ=America/Lima
       - Loggings__Path=/app/logs
@@ -44,10 +44,10 @@ services:
     image: mysql:8.3
     container_name: tasacambio-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${Mysql__RootPassword}
+      MYSQL_DATABASE: ${Mysql__DataBase}
     ports:
-      - "${DB_PORT:-3306}:3306"
+      - "${Db__Port:-3306}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./scripts/sql/01_crear_base_datos.sql:/docker-entrypoint-initdb.d/01_crear_base_datos.sql:ro
@@ -64,7 +64,7 @@ services:
     container_name: tasacambio-seq
     environment:
       ACCEPT_EULA: "Y"
-      SEQ_FIRSTRUN_ADMINPASSWORD: ${SEQ_ADMIN_PASSWORD}
+      SEQ_FIRSTRUN_ADMINPASSWORD: ${Seq__AdminPassWord}
     ports:
       - "5341:5341"
       - "8081:80"
