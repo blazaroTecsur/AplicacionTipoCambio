@@ -2,7 +2,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: Dockerfile.Worker
+      dockerfile: Dockerfile
       args:
         GITHUB_USER: ${GITHUB_USER}
         NUGET_TECSUR_TOKEN: ${NUGET_TECSUR_TOKEN}
