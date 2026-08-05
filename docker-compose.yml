@@ -9,7 +9,7 @@ services:
     container_name: tasacambio-worker
     environment:
       - DOTNET_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - ConnectionStrings__DefaultConnection=${Mysql__DbConnectionString}
       - Sbs__UrlXml=${Sbs__UrlXml}
       - Sbs__UrlHtml=${Sbs__UrlHtml}
       - Sbs__HoraInicioRegistro=${Sbs__HoraInicioRegistro}
