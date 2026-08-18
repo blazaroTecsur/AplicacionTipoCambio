@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        GITHUB_USER: ${GitHub__User}
-        NUGET_TECSUR_TOKEN: ${GitHub__NugetTecsurToken}
+        NUGET_USERNAME: ${GitHub__User}
+        NUGET_TOKEN: ${GitHub__NugetTecsurToken}
     container_name: tasacambio-worker
     environment:
       - DOTNET_ENVIRONMENT=Production
@@ -17,7 +17,7 @@ services:
       - Sbs__IntervaloBusquedaMinutos=${Sbs__IntervaloBusquedaMinutos}
       - Sbs__ValidacionPartesEnteras=${Sbs__ValidacionPartesEnteras}
       - Sbs__ValidacionPartesDecimales=${Sbs__ValidacionPartesDecimales}
-      - Sbs__Monedas__0=${Sbs__Moneda0:-USD}
+      - Sbs__Monedas__0=${Sbs__Monedas__0:-USD}
       - Sbs__Monedas__1=${Sbs__Monedas__1:-EUR}
       - ApiSettings__Infor__BaseUrl=${Infor__BaseUrl}
       - ApiSettings__Infor__SsoBaseUrl=${Infor__SsoBaseUrl}
