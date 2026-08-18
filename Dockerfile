@@ -4,8 +4,8 @@ WORKDIR /app
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-ARG GITHUB_USER
-ARG NUGET_TECSUR_TOKEN
+ARG NUGET_USERNAME
+ARG NUGET_TOKEN
 
 COPY ["nuget.config", "."]
 COPY ["src/TasaCambio.Worker/TasaCambio.Worker.csproj", "src/TasaCambio.Worker/"]
