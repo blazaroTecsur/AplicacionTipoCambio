@@ -14,9 +14,9 @@ WORKDIR /src
 COPY nuget.config .
 COPY . .
 
-RUN dotnet restore 
+RUN dotnet restore
 
-RUN dotnet publish TasaCambio.Worker/TasaCambio.Worker.csproj \
+RUN dotnet publish src/TasaCambio.Worker/TasaCambio.Worker.csproj \
     -c Release \
     -o /app/publish
 
