@@ -27,10 +27,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\TasaCambio.Application\TasaCambio.Application.csproj" />
-    <ProjectReference Include="..\..\src\TasaCambio.Domain\TasaCambio.Domain.csproj" />
-    <ProjectReference Include="..\..\src\TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj" />
     <PackageReference Include="Infor.Abstractions" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\TasaCambio.Application\TasaCambio.Application.csproj" />
+    <ProjectReference Include="..\..\TasaCambio.Domain\TasaCambio.Domain.csproj" />
+    <ProjectReference Include="..\..\TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

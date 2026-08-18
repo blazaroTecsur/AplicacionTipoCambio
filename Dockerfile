@@ -1,28 +1,33 @@
-FROM ghcr.io/sistecsur/dotnet-runtime:8.1 AS base
-WORKDIR /app
+# =====================================
+# BUILD
+# =====================================
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+
+ARG NUGET_USERNAME
+ARG NUGET_TOKEN
+ENV NUGET_USERNAME=${NUGET_USERNAME}
+ENV NUGET_TOKEN=${NUGET_TOKEN}
+
 WORKDIR /src
 
-ARG GITHUB_USER
-ARG NUGET_TECSUR_TOKEN
-
-COPY ["nuget.config", "."]
-COPY ["src/TasaCambio.Worker/TasaCambio.Worker.csproj", "src/TasaCambio.Worker/"]
-COPY ["src/TasaCambio.Application/TasaCambio.Application.csproj", "src/TasaCambio.Application/"]
-COPY ["src/TasaCambio.Domain/TasaCambio.Domain.csproj", "src/TasaCambio.Domain/"]
-COPY ["src/TasaCambio.Infrastructure/TasaCambio.Infrastructure.csproj", "src/TasaCambio.Infrastructure/"]
-
-RUN dotnet restore "src/TasaCambio.Worker/TasaCambio.Worker.csproj"
-
+COPY nuget.config .
 COPY . .
 
-RUN dotnet build "src/TasaCambio.Worker/TasaCambio.Worker.csproj" -c Release -o /app/build
+RUN dotnet restore 
 
-FROM build AS publish
-RUN dotnet publish "src/TasaCambio.Worker/TasaCambio.Worker.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish TasaCambio.Worker/TasaCambio.Worker.csproj \
+    -c Release \
+    -o /app/publish
 
-FROM base AS final
+# =====================================
+# RUNTIME
+# =====================================
+
+FROM ghcr.io/sistecsur/dotnet-runtime:8.1
+
 WORKDIR /app
-COPY --from=publish /app/publish .
+
+COPY --from=build /app/publish .
+
 ENTRYPOINT ["dotnet", "TasaCambio.Worker.dll"]
