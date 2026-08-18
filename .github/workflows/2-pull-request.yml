@@ -1,0 +1,46 @@
+# Objetivo: Proteger la rama compartida (develop)
+# Actualmente tu pipeline valida:
+#   Dependencias NuGet válidas
+#   Proyecto compila
+#   Dockerfile funciona
+#   Imagen Docker puede construirse
+# Esto evita aproximadamente el 70% de los errores más comunes.
+# Pensar más adelante en agregar pruebas unitarias, seguridad, control de calidad, etc. 
+# Un pipeline más completo y estricto que el de feature, ya que la rama develop es compartida y debe protegerse más.
+
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+
+  validate:
+
+    runs-on: ubuntu-latest
+
+    env:
+      NUGET_USERNAME: ${{ github.actor }}
+      NUGET_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - run: dotnet restore
+
+      - run: dotnet build --configuration Release --no-restore
+
+      - name: Docker Build
+        run: |
+          docker build \
+            --build-arg NUGET_USERNAME=${{ github.actor }} \
+            --build-arg NUGET_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -t wrk-tcambio \
+            -f Dockerfile .

@@ -24,14 +24,14 @@ docker-compose.override.yml
 # Tests
 TestResults/
 
-# Variables de entorno
+# Node
+node_modules/
+
+# Variables
 *.env
 
 # Scripts
 *.sql
-
-# Node
-node_modules/
 
 # Documentación
 README.md

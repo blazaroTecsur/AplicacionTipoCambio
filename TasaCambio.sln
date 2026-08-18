@@ -3,16 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{51D1621C-3D5B-452A-9BF5-CC401372329B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Domain", "src\TasaCambio.Domain\TasaCambio.Domain.csproj", "{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Application", "src\TasaCambio.Application\TasaCambio.Application.csproj", "{CD86EF41-4BF8-460D-8789-62E84D9E350D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Infrastructure", "src\TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj", "{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Worker", "src\TasaCambio.Worker\TasaCambio.Worker.csproj", "{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2E7AF168-3AA0-48AC-A88D-DE095D914639}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.UnitTest", "test\TasaCambio.UnitTest\TasaCambio.UnitTest.csproj", "{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}"
@@ -27,28 +17,36 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución",
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{4CFC5CF0-E302-4FCD-8922-01C470631DD7}"
+	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		Dockerfile = Dockerfile
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{EE5CA18F-02E9-4712-A210-D75B5728AB1E}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\1-feature.yml = .github\workflows\1-feature.yml
+		.github\workflows\2-pull-request.yml = .github\workflows\2-pull-request.yml
+		.github\workflows\3-build.yml = .github\workflows\3-build.yml
+		.github\workflows\4-deploy-pre.yml = .github\workflows\4-deploy-pre.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Worker", "TasaCambio.Worker\TasaCambio.Worker.csproj", "{C8D61C65-0816-41A3-3F97-91B4F5EF8E44}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Application", "TasaCambio.Application\TasaCambio.Application.csproj", "{4C7C5299-5AB7-1F27-86E6-D6D2E42C20B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Infrastructure", "TasaCambio.Infrastructure\TasaCambio.Infrastructure.csproj", "{B11E50C0-6B45-A779-38DD-DD6BC9DE4EA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TasaCambio.Domain", "TasaCambio.Domain\TasaCambio.Domain.csproj", "{BA0C5F6F-2F03-744F-E1CD-5811CFFEC1A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CD86EF41-4BF8-460D-8789-62E84D9E350D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CD86EF41-4BF8-460D-8789-62E84D9E350D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CD86EF41-4BF8-460D-8789-62E84D9E350D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CD86EF41-4BF8-460D-8789-62E84D9E350D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,17 +55,33 @@ Global
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8D61C65-0816-41A3-3F97-91B4F5EF8E44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8D61C65-0816-41A3-3F97-91B4F5EF8E44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8D61C65-0816-41A3-3F97-91B4F5EF8E44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8D61C65-0816-41A3-3F97-91B4F5EF8E44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C7C5299-5AB7-1F27-86E6-D6D2E42C20B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C7C5299-5AB7-1F27-86E6-D6D2E42C20B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C7C5299-5AB7-1F27-86E6-D6D2E42C20B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C7C5299-5AB7-1F27-86E6-D6D2E42C20B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B11E50C0-6B45-A779-38DD-DD6BC9DE4EA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B11E50C0-6B45-A779-38DD-DD6BC9DE4EA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B11E50C0-6B45-A779-38DD-DD6BC9DE4EA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B11E50C0-6B45-A779-38DD-DD6BC9DE4EA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BA0C5F6F-2F03-744F-E1CD-5811CFFEC1A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BA0C5F6F-2F03-744F-E1CD-5811CFFEC1A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BA0C5F6F-2F03-744F-E1CD-5811CFFEC1A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BA0C5F6F-2F03-744F-E1CD-5811CFFEC1A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A014033E-9874-4FF7-BDFB-8D467E6EDD9B} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
-		{CD86EF41-4BF8-460D-8789-62E84D9E350D} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
-		{BF7DE132-2939-4ECA-AB9A-91C047DDCFD7} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
-		{E3A7B5C2-1F9D-4E8A-B6C3-2D5F8E9A0B1C} = {51D1621C-3D5B-452A-9BF5-CC401372329B}
 		{2A8B2424-7D8B-47CB-9389-43A2EF92D1B3} = {2E7AF168-3AA0-48AC-A88D-DE095D914639}
 		{CDAB4BC0-CF50-4CD7-B006-F1015DB7AB7A} = {2E7AF168-3AA0-48AC-A88D-DE095D914639}
+		{C8D61C65-0816-41A3-3F97-91B4F5EF8E44} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4C7C5299-5AB7-1F27-86E6-D6D2E42C20B4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{B11E50C0-6B45-A779-38DD-DD6BC9DE4EA1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{BA0C5F6F-2F03-744F-E1CD-5811CFFEC1A7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {34613CE1-3543-479C-B65C-C8F54B233CE5}

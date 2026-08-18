@@ -1,0 +1,45 @@
+# Objetivo: Desplegar la imagen del API de seguridad en el entorno PRE (preproducción) después de que se haya completado con éxito el flujo de trabajo de construcción.
+
+name: Deploy PRE
+
+on:
+  workflow_run:
+    workflows:
+      - Build Wrk Tcambio
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    runs-on: self-hosted
+
+    steps:
+      - name: Login GHCR
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io \
+            -u ${{ github.actor }} \
+            --password-stdin
+
+      - name: Pull Image
+        run: |
+          cd /home/desarrollo_erp/platform
+          docker compose pull wrk-tcambio
+
+      - name: Restart Container
+        run: |
+          cd /home/desarrollo_erp/platform
+          docker compose up -d wrk-tcambio
+
+      - name: Cleanup
+        run: |
+          docker image prune -f
+
+      - name: Logout GHCR
+        if: always()
+        run: docker logout ghcr.io
