@@ -90,7 +90,7 @@ internal sealed class ServicioSyteline : IServicioSyteline
             props.Add(new IdoProperty { Name = "EffDate",      Value = fechaIdo     });
         }
 
-        props.Add(new IdoProperty { Name = "BuyRate",  Value = compra.ToString("F4", System.Globalization.CultureInfo.InvariantCulture) });
+        props.Add(new IdoProperty { Name = "BuyRate",  Value = venta.ToString("F4",  System.Globalization.CultureInfo.InvariantCulture) });
         props.Add(new IdoProperty { Name = "SellRate", Value = venta.ToString("F4",  System.Globalization.CultureInfo.InvariantCulture) });
         props.Add(new IdoProperty { Name = "UserCode", Value = usuario });
 
